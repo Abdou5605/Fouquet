@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:fouquet/core/navigation/app_routes.dart';
+import 'package:fouquet/features/cart/presentation/cart_screen.dart';
+import 'package:fouquet/features/favorite/presentation/favorites_screen.dart';
+import 'package:fouquet/features/profile/presentation/profile_screen.dart';
 import 'package:get/get.dart';
 import 'package:fouquet/core/resources/app_images.dart';
 import 'package:fouquet/core/style/colors.dart';
@@ -14,6 +18,20 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedCategory = 0;
   int _selectedNav = 0;
+
+  // ── Pages liées au BottomNavBar ────────────────────────────
+  late final List<Widget> _pages;
+
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      _buildHomeBody(), // index 0 → Home
+      const CartScreen(), // index 1 → Cart
+      const FavoritesScreen(), // index 2 → Favorite
+      const ProfileScreen(), // index 3 → Profile
+    ];
+  }
 
   final List<String> _categories = [
     'All',
@@ -57,51 +75,50 @@ class _HomeScreenState extends State<HomeScreen> {
       'badgeColor': AppColors.badgeTopSale,
     },
   ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bgLight,
+      // ── Affiche la page active ──────────────────────────
+      body: IndexedStack(index: _selectedNav, children: _pages),
       // ── Bottom Navigation Bar ──────────────────────────
       bottomNavigationBar: _buildBottomNav(),
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            // ── Header ──────────────────────────────────
-            SliverToBoxAdapter(child: _buildHeader()),
-            const SliverToBoxAdapter(child: SizedBox(height: 20)),
+    );
+  }
 
-            // ── Promo Banner ────────────────────────────
-            SliverToBoxAdapter(child: _buildPromoBanner()),
-            const SliverToBoxAdapter(child: SizedBox(height: 24)),
-
-            // ── Categories ──────────────────────────────
-            SliverToBoxAdapter(
-              child: _buildSectionHeader('Categories', 'See all', () {}),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 12)),
-            SliverToBoxAdapter(child: _buildCategories()),
-            const SliverToBoxAdapter(child: SizedBox(height: 20)),
-
-            // ── Grille produits ──────────────────────────
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: SliverGrid(
-                delegate: SliverChildBuilderDelegate(
-                  (context, i) => _buildProductCard(_products[i]),
-                  childCount: _products.length,
-                ),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  childAspectRatio: 0.75,
-                ),
+  // ── Corps principal Home (index 0) ─────────────────────────
+  Widget _buildHomeBody() {
+    return SafeArea(
+      child: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(child: _buildHeader()),
+          const SliverToBoxAdapter(child: SizedBox(height: 20)),
+          SliverToBoxAdapter(child: _buildPromoBanner()),
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
+          SliverToBoxAdapter(
+            child: _buildSectionHeader('Categories', 'See all', () {}),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 12)),
+          SliverToBoxAdapter(child: _buildCategories()),
+          const SliverToBoxAdapter(child: SizedBox(height: 20)),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            sliver: SliverGrid(
+              delegate: SliverChildBuilderDelegate(
+                (context, i) => _buildProductCard(_products[i]),
+                childCount: _products.length,
+              ),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+                childAspectRatio: 0.75,
               ),
             ),
-
-            const SliverToBoxAdapter(child: SizedBox(height: 30)),
-          ],
-        ),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 30)),
+        ],
       ),
     );
   }
@@ -112,7 +129,6 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       child: Row(
         children: [
-          // Avatar
           CircleAvatar(
             radius: 24,
             backgroundColor: AppColors.primary,
@@ -120,8 +136,6 @@ class _HomeScreenState extends State<HomeScreen> {
             onBackgroundImageError: (_, __) {},
           ),
           const SizedBox(width: 12),
-
-          // Greeting
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -131,8 +145,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-
-          // Search icon
           Container(
             width: 44,
             height: 44,
@@ -171,7 +183,6 @@ class _HomeScreenState extends State<HomeScreen> {
         clipBehavior: Clip.hardEdge,
         child: Stack(
           children: [
-            // Image droite
             Positioned(
               right: 0,
               top: 0,
@@ -183,8 +194,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 errorBuilder: (_, __, ___) => const SizedBox(),
               ),
             ),
-
-            // Fondu image
             Positioned(
               right: 0,
               top: 0,
@@ -203,8 +212,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-
-            // Contenu gauche
             Padding(
               padding: const EdgeInsets.all(18),
               child: Column(
@@ -340,134 +347,134 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ── Product Card ───────────────────────────────────────────
   Widget _buildProductCard(Map<String, dynamic> product) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.07),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Image + badge
-          Expanded(
-            child: Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(18),
-                  ),
-                  child: Image.asset(
-                    product['image'],
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: AppColors.bgLight,
-                      child: const Icon(
-                        Icons.restaurant,
-                        color: AppColors.textGray,
-                        size: 40,
-                      ),
+    return GestureDetector(
+      // ✅ Navigation vers ProductDetailScreen avec les données du produit
+      onTap: () => Get.toNamed(AppRoutes.productDetail, arguments: product),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.bgCard,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.07),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(18),
                     ),
-                  ),
-                ),
-                if (product['badge'] != null)
-                  Positioned(
-                    top: 8,
-                    left: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: product['badgeColor'],
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        product['badge'],
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 9,
-                          fontWeight: FontWeight.w800,
-                          height: 1.2,
+                    child: Image.asset(
+                      product['image'],
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        color: AppColors.bgLight,
+                        child: const Icon(
+                          Icons.restaurant,
+                          color: AppColors.textGray,
+                          size: 40,
                         ),
                       ),
                     ),
                   ),
-              ],
-            ),
-          ),
-
-          // Infos + bouton
-          Padding(
-            padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  product['name'],
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textDark,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${product['price']} F',
+                  if (product['badge'] != null)
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: product['badgeColor'],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          product['badge'],
+                          textAlign: TextAlign.center,
                           style: const TextStyle(
-                            fontSize: 14,
+                            color: Colors.white,
+                            fontSize: 9,
                             fontWeight: FontWeight.w800,
-                            color: AppColors.textDark,
+                            height: 1.2,
                           ),
                         ),
-                        if (product['oldPrice'] != null)
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product['name'],
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textDark,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            '${product['oldPrice']} F',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: AppColors.textGray,
-                              decoration: TextDecoration.lineThrough,
+                            '${product['price']} F',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textDark,
                             ),
                           ),
-                      ],
-                    ),
-                    // Bouton flèche
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: AppColors.accent,
-                        borderRadius: BorderRadius.circular(10),
+                          if (product['oldPrice'] != null)
+                            Text(
+                              '${product['oldPrice']} F',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textGray,
+                                decoration: TextDecoration.lineThrough,
+                              ),
+                            ),
+                        ],
                       ),
-                      child: const Icon(
-                        Icons.arrow_forward_rounded,
-                        color: Colors.white,
-                        size: 16,
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: AppColors.accent,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.arrow_forward_rounded,
+                          color: Colors.white,
+                          size: 16,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -501,6 +508,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: List.generate(items.length, (i) {
               final selected = _selectedNav == i;
               return GestureDetector(
+                // ✅ Change de page au tap
                 onTap: () => setState(() => _selectedNav = i),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
@@ -535,7 +543,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               : AppColors.textGray,
                         ),
                       ),
-                      // Indicateur actif
                       if (selected)
                         Container(
                           margin: const EdgeInsets.only(top: 4),
