@@ -15,4 +15,11 @@ abstract class AppRoutes {
   static const String payment = '/payment';
   static const String profile = '/profile';
   static const String editProfile = '/edit-profile';
+  static const String verifyEmail = '/verfyEmail';
+  static const String resetPassword = '/reset-password';
+  static const String changePassword = '/change-password';
+  static const String bookSpace = '/book-space';
+  static const referral = '/referral';
+  static const helpCenter = '/help-center';
+  static const contact = '/contact';
 }

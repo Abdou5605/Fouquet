@@ -1,9 +1,14 @@
+import 'package:fouquet/features/booking/presentation/booking_space_screen.dart';
 import 'package:fouquet/features/cart/presentation/cart_screen.dart';
 import 'package:fouquet/features/favorite/presentation/favorites_screen.dart';
 import 'package:fouquet/features/home/presentation/product_detail_screen.dart';
+import 'package:fouquet/features/profile/presentation/change_password_screen.dart';
+import 'package:fouquet/features/profile/presentation/contact_screen.dart';
 import 'package:fouquet/features/profile/presentation/edit_profile_screen.dart';
+import 'package:fouquet/features/profile/presentation/help_center_screen.dart';
 import 'package:fouquet/features/profile/presentation/order_history_screen.dart';
 import 'package:fouquet/features/profile/presentation/profile_screen.dart';
+import 'package:fouquet/features/profile/presentation/referral_screen.dart';
 import 'package:get/get.dart';
 import 'package:fouquet/core/navigation/app_routes.dart';
 import 'package:fouquet/core/presentation/splash_screen.dart';
@@ -102,6 +107,37 @@ abstract class AppRouter {
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 300),
     ),
+    GetPage(
+      name: AppRoutes.bookSpace,
+      page: () => const BookSpaceScreen(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+    GetPage(
+      name: AppRoutes.referral,
+      page: () => const ReferralScreen(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+    GetPage(
+      name: AppRoutes.helpCenter,
+      page: () => const HelpCenterScreen(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+    GetPage(
+      name: AppRoutes.contact,
+      page: () => const ContactScreen(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+    GetPage(
+      name: AppRoutes.changePassword,
+      page: () => const ChangePasswordScreen(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+
     // GetPage(
     //   name: AppRoutes.payment,
     //   page: () => const PaymentScreen(),

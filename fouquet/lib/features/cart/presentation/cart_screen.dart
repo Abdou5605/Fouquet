@@ -273,7 +273,7 @@ class _CartScreenState extends State<CartScreen> {
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w800,
-                          color: AppColors.accent,
+                          color: AppColors.badgeOff,
                         ),
                       ),
 
@@ -324,7 +324,7 @@ class _CartScreenState extends State<CartScreen> {
       ),
       child: Row(
         children: [
-          Icon(Icons.local_offer_outlined, color: AppColors.accent, size: 20),
+          Icon(Icons.local_offer_outlined, color: AppColors.primary, size: 20),
           const SizedBox(width: 10),
           const Expanded(
             child: TextField(
@@ -338,7 +338,7 @@ class _CartScreenState extends State<CartScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: AppColors.accent,
+              color: AppColors.primary,
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Text(
@@ -401,7 +401,7 @@ class _CartScreenState extends State<CartScreen> {
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.accent,
+                  color: AppColors.badgeOff,
                 ),
               ),
             ],
@@ -438,13 +438,13 @@ class _CartScreenState extends State<CartScreen> {
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: AppColors.accent.withOpacity(0.1),
+              color: AppColors.badgeOff.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.shopping_bag_outlined,
               size: 56,
-              color: AppColors.accent,
+              color: AppColors.badgeOff,
             ),
           ),
           const SizedBox(height: 24),
@@ -467,7 +467,7 @@ class _CartScreenState extends State<CartScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
               decoration: BoxDecoration(
-                color: AppColors.accent,
+                color: AppColors.badgeOff,
                 borderRadius: BorderRadius.circular(30),
               ),
               child: const Text(
@@ -529,11 +529,11 @@ class _CartScreenState extends State<CartScreen> {
               child: Container(
                 height: 54,
                 decoration: BoxDecoration(
-                  color: AppColors.accent,
+                  color: AppColors.badgeOff,
                   borderRadius: BorderRadius.circular(30),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.accent.withOpacity(0.4),
+                      color: AppColors.badgeOff.withOpacity(0.4),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -577,7 +577,7 @@ class _QtyBtn extends StatelessWidget {
         width: 30,
         height: 30,
         decoration: BoxDecoration(
-          color: filled ? AppColors.accent : AppColors.bgLight,
+          color: filled ? AppColors.badgeOff : AppColors.bgLight,
           shape: BoxShape.circle,
           border: filled
               ? null

@@ -43,13 +43,20 @@ class ProfileScreen extends StatelessWidget {
                   _MenuItem(
                     icon: Icons.card_giftcard_outlined,
                     label: 'Parrainage & Réductions',
-                    onTap: () {},
+                    onTap: () => Get.toNamed(AppRoutes.referral),
+                    badge: 'NEW',
+                  ),
+                  _MenuItem(
+                    // ✅ ajouté
+                    icon: Icons.celebration_outlined,
+                    label: 'Réserver un espace',
+                    onTap: () => Get.toNamed(AppRoutes.bookSpace),
                     badge: 'NEW',
                   ),
                   _MenuItem(
                     icon: Icons.lock_outline_rounded,
                     label: 'Changer mot de passe',
-                    onTap: () {},
+                    onTap: () => Get.toNamed(AppRoutes.changePassword),
                   ),
                 ],
               ),
@@ -88,12 +95,12 @@ class ProfileScreen extends StatelessWidget {
                   _MenuItem(
                     icon: Icons.help_outline_rounded,
                     label: 'Centre d\'aide',
-                    onTap: () {},
+                    onTap: () => Get.toNamed(AppRoutes.helpCenter),
                   ),
                   _MenuItem(
                     icon: Icons.chat_bubble_outline_rounded,
                     label: 'Nous contacter',
-                    onTap: () {},
+                    onTap: () => Get.toNamed(AppRoutes.contact),
                   ),
                 ],
               ),
@@ -121,7 +128,6 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  // ── Header ───────
   Widget _buildHeader(BuildContext context) {
     return Container(
       width: double.infinity,
@@ -138,7 +144,7 @@ class ProfileScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              const SizedBox(width: 44), // équilibre la ligne
+              const SizedBox(width: 44),
               const Expanded(
                 child: Text(
                   'Profil',
@@ -169,7 +175,6 @@ class ProfileScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-
           Stack(
             children: [
               Container(
@@ -203,7 +208,7 @@ class ProfileScreen extends StatelessWidget {
                     width: 28,
                     height: 28,
                     decoration: BoxDecoration(
-                      color: AppColors.accent,
+                      color: AppColors.badgeOff,
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 2),
                     ),
@@ -218,7 +223,6 @@ class ProfileScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-
           const Text(
             'Jhon Anderson',
             style: TextStyle(
@@ -240,7 +244,6 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  // ── Stats ─────────
   Widget _buildStats() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -275,7 +278,7 @@ class ProfileScreen extends StatelessWidget {
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w800,
-              color: AppColors.accent,
+              color: AppColors.badgeOff,
             ),
           ),
           const SizedBox(height: 4),
@@ -291,7 +294,6 @@ class ProfileScreen extends StatelessWidget {
   Widget _divider() =>
       Container(width: 1, height: 40, color: AppColors.divider);
 
-  // ── Section menu ───────────
   Widget _buildMenuSection({
     required String title,
     required List<_MenuItem> items,
@@ -338,14 +340,13 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _buildMenuItem(_MenuItem item) {
-    final iconColor = item.danger ? AppColors.secondary : AppColors.accent;
+    final iconColor = item.danger ? AppColors.badgeOff : AppColors.primary;
     return GestureDetector(
       onTap: item.onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
-            // Icône
             Container(
               width: 38,
               height: 38,
@@ -356,8 +357,6 @@ class ProfileScreen extends StatelessWidget {
               child: Icon(item.icon, color: iconColor, size: 20),
             ),
             const SizedBox(width: 14),
-
-            // Label + subtitle
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -380,14 +379,12 @@ class ProfileScreen extends StatelessWidget {
                 ],
               ),
             ),
-
-            // Badge NEW
             if (item.badge != null)
               Container(
                 margin: const EdgeInsets.only(right: 8),
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: AppColors.accent,
+                  color: AppColors.badgeOff,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -399,8 +396,6 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
               ),
-
-            // Trailing
             item.trailing ??
                 Icon(
                   Icons.arrow_forward_ios_rounded,
@@ -415,7 +410,6 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  // ── Dialog suppression compte ───────────
   void _showDeleteDialog() {
     Get.dialog(
       AlertDialog(
@@ -450,7 +444,6 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _buildSwitch() => _SwitchWidget();
 
-  // ── Bouton déconnexion ────────────
   Widget _buildLogoutBtn() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -485,7 +478,6 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
-// ── Modèle item menu ───────────────
 class _MenuItem {
   final IconData icon;
   final String label;
@@ -506,7 +498,6 @@ class _MenuItem {
   });
 }
 
-// ── Switch widget ────────────)
 class _SwitchWidget extends StatefulWidget {
   @override
   State<_SwitchWidget> createState() => _SwitchWidgetState();
@@ -514,13 +505,12 @@ class _SwitchWidget extends StatefulWidget {
 
 class _SwitchWidgetState extends State<_SwitchWidget> {
   bool _value = true;
-
   @override
   Widget build(BuildContext context) {
     return Switch(
       value: _value,
       onChanged: (v) => setState(() => _value = v),
-      activeColor: AppColors.accent,
+      activeColor: AppColors.badgeOff,
     );
   }
 }

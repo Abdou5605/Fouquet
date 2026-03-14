@@ -41,7 +41,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       'Succès',
       'Profil mis à jour avec succès !',
       snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: AppColors.accent,
+      backgroundColor: AppColors.badgeOff,
       colorText: Colors.white,
       margin: const EdgeInsets.all(16),
       borderRadius: 16,
@@ -174,7 +174,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           height: 100,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: AppColors.accent, width: 3),
+            border: Border.all(color: AppColors.primary, width: 3),
           ),
           child: ClipOval(
             child: Image.asset(
@@ -200,7 +200,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: AppColors.accent,
+                color: AppColors.badgeOff,
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.white, width: 2),
               ),
@@ -246,7 +246,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             color: AppColors.textDark,
           ),
           decoration: InputDecoration(
-            prefixIcon: Icon(icon, color: AppColors.accent, size: 20),
+            prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
             filled: true,
             fillColor: AppColors.bgCard,
             contentPadding: const EdgeInsets.symmetric(
@@ -263,7 +263,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: AppColors.accent, width: 1.5),
+              borderSide: BorderSide(color: AppColors.primary, width: 1.5),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
@@ -285,12 +285,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         height: 54,
         decoration: BoxDecoration(
           color: _loading
-              ? AppColors.accent.withOpacity(0.6)
-              : AppColors.accent,
+              ? AppColors.primary.withOpacity(0.6)
+              : AppColors.primary,
           borderRadius: BorderRadius.circular(30),
           boxShadow: [
             BoxShadow(
-              color: AppColors.accent.withOpacity(0.35),
+              color: AppColors.primary.withOpacity(0.35),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),

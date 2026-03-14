@@ -8,6 +8,7 @@ class AppImages {
   static const String viande = '$_base/viande.png';
   static const String frite = '$_base/frite.png';
   static const String raisin = '$_base/raisin.png';
+  static const String logo = '$_base/logo.png';
 
   // ── Splash ────────────────────────────────────────────
   static const String splashBg = '$_base/splash_background.png';

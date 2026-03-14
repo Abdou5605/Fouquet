@@ -19,17 +19,16 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedCategory = 0;
   int _selectedNav = 0;
 
-  // ── Pages liées au BottomNavBar ────────────────────────────
   late final List<Widget> _pages;
 
   @override
   void initState() {
     super.initState();
     _pages = [
-      _buildHomeBody(), // index 0 → Home
-      const CartScreen(), // index 1 → Cart
-      const FavoritesScreen(), // index 2 → Favorite
-      const ProfileScreen(), // index 3 → Profile
+      _buildHomeBody(),
+      const CartScreen(),
+      const FavoritesScreen(),
+      const ProfileScreen(),
     ];
   }
 
@@ -48,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
       'oldPrice': 5000,
       'image': AppImages.viande,
       'badge': 'TOP\nSALE',
-      'badgeColor': AppColors.badgeTopSale,
+      'badgeColor': AppColors.badgeOff,
     },
     {
       'name': 'Pizza Fouquet',
@@ -63,8 +62,8 @@ class _HomeScreenState extends State<HomeScreen> {
       'price': 3000,
       'oldPrice': 6000,
       'image': AppImages.frite,
-      'badge': null,
-      'badgeColor': null,
+      'badge': '9%\nOFF',
+      'badgeColor': AppColors.badgeOff,
     },
     {
       'name': 'Salade Fouquet',
@@ -72,7 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
       'oldPrice': null,
       'image': AppImages.raisin,
       'badge': 'TOP\nSALE',
-      'badgeColor': AppColors.badgeTopSale,
+      'badgeColor': AppColors.badgeOff,
     },
   ];
 
@@ -80,14 +79,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bgLight,
-      // ── Affiche la page active ──────────────────────────
       body: IndexedStack(index: _selectedNav, children: _pages),
-      // ── Bottom Navigation Bar ──────────────────────────
       bottomNavigationBar: _buildBottomNav(),
     );
   }
 
-  // ── Corps principal Home (index 0) ─────────────────────────
+  // ── Corps Home ─────────────────────────────────────────────
   Widget _buildHomeBody() {
     return SafeArea(
       child: CustomScrollView(
@@ -97,11 +94,15 @@ class _HomeScreenState extends State<HomeScreen> {
           SliverToBoxAdapter(child: _buildPromoBanner()),
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
           SliverToBoxAdapter(
-            child: _buildSectionHeader('Categories', 'See all', () {}),
+            child: _buildSectionHeader('Catégories', 'Voir tout', () {}),
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 12)),
           SliverToBoxAdapter(child: _buildCategories()),
           const SliverToBoxAdapter(child: SizedBox(height: 20)),
+          SliverToBoxAdapter(
+            child: _buildSectionHeader('Nos Plats', 'Voir tout', () {}),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 12)),
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             sliver: SliverGrid(
@@ -125,43 +126,66 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ── Header ─────────────────────────────────────────────────
   Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+    return Container(
+      // ✅ Bandeau vert en haut
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppColors.primary, AppColors.primary.withOpacity(0.85)],
+        ),
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
+      ),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 24,
-            backgroundColor: AppColors.primary,
-            backgroundImage: const AssetImage(AppImages.onboardAsiatique),
-            onBackgroundImageError: (_, __) {},
+          // Avatar avec bordure blanche
+          Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2.5),
+            ),
+            child: CircleAvatar(
+              radius: 24,
+              backgroundColor: AppColors.primary,
+              backgroundImage: const AssetImage(AppImages.onboardAsiatique),
+              onBackgroundImageError: (_, __) {},
+            ),
           ),
           const SizedBox(width: 12),
+
+          // Greeting — texte blanc sur fond vert
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Jhon Anderson', style: AppTextStyles.greetingName),
-                Text('Good Morning 👋', style: AppTextStyles.greetingText),
+                Text(
+                  'Jhon Anderson',
+                  style: AppTextStyles.greetingName.copyWith(
+                    color: Colors.white,
+                  ),
+                ),
+                Text(
+                  'Good Morning 👋',
+                  style: AppTextStyles.greetingText.copyWith(
+                    color: Colors.white.withOpacity(0.85),
+                  ),
+                ),
               ],
             ),
           ),
+
+          // Bouton search blanc
           Container(
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: AppColors.bgCard,
+              color: Colors.white.withOpacity(0.2),
               shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.07),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
             ),
             child: const Icon(
               Icons.search_rounded,
-              color: AppColors.textDark,
+              color: Colors.white,
               size: 22,
             ),
           ),
@@ -177,8 +201,13 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Container(
         height: 150,
         decoration: BoxDecoration(
-          color: const Color(0xFFFDE8C8),
+          // ✅ Fond vert clair au lieu de beige
+          color: AppColors.primary.withOpacity(0.12),
           borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: AppColors.primary.withOpacity(0.25),
+            width: 1.5,
+          ),
         ),
         clipBehavior: Clip.hardEdge,
         child: Stack(
@@ -206,7 +235,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     end: Alignment.centerLeft,
                     colors: [
                       Colors.transparent,
-                      const Color(0xFFFDE8C8).withOpacity(0.98),
+                      AppColors.primary.withOpacity(0.10),
                     ],
                   ),
                 ),
@@ -218,21 +247,32 @@ class _HomeScreenState extends State<HomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    'Today Only',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.accent,
+                  // ✅ Badge rose "Today Only"
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Text(
+                      'Today Only',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 6),
                   Text(
                     '20% OFF',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.textDark,
+                      color: AppColors.primary, // ✅ vert
                       height: 1.1,
                     ),
                   ),
@@ -249,11 +289,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.accent,
+                        color: AppColors.primary, // ✅ vert
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: const Text(
-                        'Order Now',
+                        'Commander',
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w700,
@@ -293,7 +333,7 @@ class _HomeScreenState extends State<HomeScreen> {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: AppColors.accent,
+                color: AppColors.secondary, // ✅ rose
               ),
             ),
           ),
@@ -319,10 +359,17 @@ class _HomeScreenState extends State<HomeScreen> {
               duration: const Duration(milliseconds: 250),
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
               decoration: BoxDecoration(
-                color: selected ? AppColors.accent : AppColors.bgCard,
+                // ✅ Catégorie active = vert primary
+                color: selected ? AppColors.primary : AppColors.bgCard,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: selected
-                    ? []
+                    ? [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ]
                     : [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.05),
@@ -348,7 +395,6 @@ class _HomeScreenState extends State<HomeScreen> {
   // ── Product Card ───────────────────────────────────────────
   Widget _buildProductCard(Map<String, dynamic> product) {
     return GestureDetector(
-      // ✅ Navigation vers ProductDetailScreen avec les données du produit
       onTap: () => Get.toNamed(AppRoutes.productDetail, arguments: product),
       child: Container(
         decoration: BoxDecoration(
@@ -438,10 +484,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           Text(
                             '${product['price']} F',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w800,
-                              color: AppColors.textDark,
+                              color: AppColors.primary, // ✅ prix en vert
                             ),
                           ),
                           if (product['oldPrice'] != null)
@@ -455,11 +501,12 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                         ],
                       ),
+                      // ✅ Bouton flèche vert
                       Container(
                         width: 32,
                         height: 32,
                         decoration: BoxDecoration(
-                          color: AppColors.accent,
+                          color: AppColors.primary,
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: const Icon(
@@ -484,8 +531,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final items = [
       {'icon': Icons.home_rounded, 'label': 'Home'},
       {'icon': Icons.shopping_bag_outlined, 'label': 'Cart'},
-      {'icon': Icons.favorite_border_rounded, 'label': 'Favorite'},
-      {'icon': Icons.person_outline_rounded, 'label': 'Profile'},
+      {'icon': Icons.favorite_border_rounded, 'label': 'Favoris'},
+      {'icon': Icons.person_outline_rounded, 'label': 'Profil'},
     ];
 
     return Container(
@@ -508,7 +555,6 @@ class _HomeScreenState extends State<HomeScreen> {
             children: List.generate(items.length, (i) {
               final selected = _selectedNav == i;
               return GestureDetector(
-                // ✅ Change de page au tap
                 onTap: () => setState(() => _selectedNav = i),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
@@ -517,8 +563,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
+                    // ✅ Fond vert transparent pour l'item actif
                     color: selected
-                        ? AppColors.accent.withOpacity(0.12)
+                        ? AppColors.primary.withOpacity(0.12)
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -527,7 +574,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Icon(
                         items[i]['icon'] as IconData,
-                        color: selected ? AppColors.accent : AppColors.textGray,
+                        // ✅ Icône verte si actif
+                        color: selected
+                            ? AppColors.primary
+                            : AppColors.textGray,
                         size: 24,
                       ),
                       const SizedBox(height: 4),
@@ -539,7 +589,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ? FontWeight.w700
                               : FontWeight.w500,
                           color: selected
-                              ? AppColors.accent
+                              ? AppColors.primary
                               : AppColors.textGray,
                         ),
                       ),
@@ -549,7 +599,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           width: 20,
                           height: 3,
                           decoration: BoxDecoration(
-                            color: AppColors.accent,
+                            // ✅ Indicateur vert
+                            color: AppColors.primary,
                             borderRadius: BorderRadius.circular(2),
                           ),
                         ),

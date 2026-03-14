@@ -8,13 +8,13 @@ import 'package:fouquet/core/style/theme.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ── Portrait uniquement ───────────────────────────────
+  // ── Portrait uniquement ───────
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
-  // ── Style barre système ───────────────────────────────
+  // ── Style barre système ───────
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -35,11 +35,11 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
 
-      // ── Navigation ────────────────────────────────────
+      // ── Navigation ───────
       initialRoute: AppRoutes.splash,
       getPages: AppRouter.routes,
 
-      // ── Transition par défaut ─────────────────────────
+      // ── Transition par défaut ───────
       defaultTransition: Transition.fadeIn,
     );
   }

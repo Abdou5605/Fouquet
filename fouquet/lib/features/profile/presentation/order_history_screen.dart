@@ -144,6 +144,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
           const Expanded(
             child: Text(
               'Mes commandes',
+              textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
@@ -187,9 +188,9 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
             onTap: () => _tabCtrl.animateTo(i),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 220),
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 8),
               decoration: BoxDecoration(
-                color: selected ? AppColors.accent : AppColors.bgCard,
+                color: selected ? AppColors.badgeOff : AppColors.bgCard,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: selected
                     ? []
@@ -347,7 +348,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
                     const SizedBox(width: 8),
                     _actionBtn(
                       label: 'Annuler',
-                      color: AppColors.secondary,
+                      color: AppColors.badgeOff,
                       onTap: () {},
                     ),
                   ],
