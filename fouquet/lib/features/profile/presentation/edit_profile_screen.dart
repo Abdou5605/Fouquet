@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fouquet/core/resources/app_images.dart';
@@ -34,7 +35,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void _save() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
-    await Future.delayed(const Duration(seconds: 1)); // simuler API
+    await Future.delayed(const Duration(seconds: 1));
     setState(() => _loading = false);
     Get.back();
     Get.snackbar(
@@ -64,51 +65,46 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   key: _formKey,
                   child: Column(
                     children: [
-                      // ── Avatar ───────────────────────
                       _buildAvatar(),
                       const SizedBox(height: 32),
-
-                      // ── Champs ───────────────────────
                       _buildField(
                         label: 'Nom',
                         controller: _nomCtrl,
-                        icon: Icons.person_outline_rounded,
+                        icon: CupertinoIcons.person,
                         validator: (v) => v!.isEmpty ? 'Champ requis' : null,
-                      ),
+                      ), // ✅
                       const SizedBox(height: 16),
                       _buildField(
                         label: 'Prénom',
                         controller: _prenomCtrl,
-                        icon: Icons.person_outline_rounded,
+                        icon: CupertinoIcons.person,
                         validator: (v) => v!.isEmpty ? 'Champ requis' : null,
-                      ),
+                      ), // ✅
                       const SizedBox(height: 16),
                       _buildField(
                         label: 'Email',
                         controller: _emailCtrl,
-                        icon: Icons.email_outlined,
+                        icon: CupertinoIcons.mail,
                         keyboardType: TextInputType.emailAddress,
                         validator: (v) =>
                             !v!.contains('@') ? 'Email invalide' : null,
-                      ),
+                      ), // ✅
                       const SizedBox(height: 16),
                       _buildField(
                         label: 'Téléphone',
                         controller: _phoneCtrl,
-                        icon: Icons.phone_outlined,
+                        icon: CupertinoIcons.phone,
                         keyboardType: TextInputType.phone,
                         validator: (v) => v!.isEmpty ? 'Champ requis' : null,
-                      ),
+                      ), // ✅
                       const SizedBox(height: 16),
                       _buildField(
                         label: 'Adresse',
                         controller: _adresseCtrl,
-                        icon: Icons.location_on_outlined,
+                        icon: CupertinoIcons.location,
                         validator: (v) => v!.isEmpty ? 'Champ requis' : null,
-                      ),
+                      ), // ✅
                       const SizedBox(height: 32),
-
-                      // ── Bouton Enregistrer ────────────
                       _buildSaveBtn(),
                     ],
                   ),
@@ -121,7 +117,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  // ── AppBar ─────────────────────────────────────────────────
   Widget _buildAppBar() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
@@ -144,10 +139,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ],
               ),
               child: const Icon(
-                Icons.arrow_back_ios_new_rounded,
+                CupertinoIcons.arrow_left,
                 color: AppColors.textDark,
                 size: 18,
-              ),
+              ), // ✅
             ),
           ),
           const SizedBox(width: 16),
@@ -164,7 +159,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  // ── Avatar ─────────────────────────────────────────────────
   Widget _buildAvatar() {
     return Stack(
       alignment: Alignment.center,
@@ -183,10 +177,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               errorBuilder: (_, __, ___) => Container(
                 color: AppColors.bgLight,
                 child: const Icon(
-                  Icons.person,
+                  CupertinoIcons.person,
                   size: 50,
                   color: AppColors.textGray,
-                ),
+                ), // ✅
               ),
             ),
           ),
@@ -195,7 +189,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           bottom: 0,
           right: 0,
           child: GestureDetector(
-            onTap: () {}, // TODO: image picker
+            onTap: () {},
             child: Container(
               width: 32,
               height: 32,
@@ -205,10 +199,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 border: Border.all(color: Colors.white, width: 2),
               ),
               child: const Icon(
-                Icons.camera_alt_outlined,
+                CupertinoIcons.camera,
                 color: Colors.white,
                 size: 16,
-              ),
+              ), // ✅
             ),
           ),
         ),
@@ -216,7 +210,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  // ── Champ texte ────────────────────────────────────────────
   Widget _buildField({
     required String label,
     required TextEditingController controller,
@@ -275,7 +268,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  // ── Bouton Enregistrer ─────────────────────────────────────
   Widget _buildSaveBtn() {
     return GestureDetector(
       onTap: _loading ? null : _save,

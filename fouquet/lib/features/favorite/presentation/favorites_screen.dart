@@ -1,8 +1,10 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fouquet/core/navigation/app_routes.dart';
 import 'package:fouquet/core/resources/app_images.dart';
 import 'package:fouquet/core/style/colors.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -12,7 +14,6 @@ class FavoritesScreen extends StatefulWidget {
 }
 
 class _FavoritesScreenState extends State<FavoritesScreen> {
-  // Données temporaires — à remplacer par FavoriteController
   final List<Map<String, dynamic>> _favorites = [
     {
       'name': 'King Burger',
@@ -44,9 +45,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     },
   ];
 
-  void _removeFavorite(int i) {
-    setState(() => _favorites.removeAt(i));
-  }
+  void _removeFavorite(int i) => setState(() => _favorites.removeAt(i));
 
   @override
   Widget build(BuildContext context) {
@@ -55,10 +54,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // ── AppBar ────────────────────────────────────
             _buildAppBar(),
-
-            // ── Contenu ───────────────────────────────────
             Expanded(
               child: _favorites.isEmpty
                   ? _buildEmpty()
@@ -75,61 +71,62 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     );
   }
 
-  // ── AppBar ─────────────────────────────────────────────────
   Widget _buildAppBar() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      child: Row(
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          GestureDetector(
-            onTap: () => Get.back(),
-            child: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: AppColors.bgCard,
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.07),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.arrow_back_ios_new_rounded,
-                color: AppColors.textDark,
-                size: 18,
+          Align(
+            alignment: Alignment.centerLeft,
+            child: GestureDetector(
+              onTap: () => Get.back(),
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.bgCard,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.07),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  CupertinoIcons.arrow_left,
+                  color: AppColors.textDark,
+                  size: 18,
+                ), // ✅
               ),
             ),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Mes Favoris',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textDark,
-                  ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Mes Favoris',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textDark,
                 ),
-                Text(
-                  '${_favorites.length} plat${_favorites.length > 1 ? 's' : ''}',
-                  style: TextStyle(fontSize: 13, color: AppColors.textGray),
-                ),
-              ],
-            ),
+              ),
+              Text(
+                '${_favorites.length} plat${_favorites.length > 1 ? 's' : ''}',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, color: AppColors.textGray),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  // ── Carte favori ───────────────────────────────────────────
   Widget _buildFavoriteCard(int i) {
     final item = _favorites[i];
     return Dismissible(
@@ -144,10 +141,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
         child: const Icon(
-          Icons.favorite_border_rounded,
+          CupertinoIcons.heart_slash,
           color: Colors.white,
           size: 26,
-        ),
+        ), // ✅
       ),
       child: GestureDetector(
         onTap: () => Get.toNamed(AppRoutes.productDetail, arguments: item),
@@ -166,7 +163,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           ),
           child: Row(
             children: [
-              // Image
               ClipRRect(
                 borderRadius: BorderRadius.circular(14),
                 child: Image.asset(
@@ -179,23 +175,21 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     height: 85,
                     color: AppColors.bgLight,
                     child: const Icon(
-                      Icons.restaurant,
+                      CupertinoIcons.photo,
                       color: AppColors.textGray,
                       size: 30,
-                    ),
+                    ), // ✅
                   ),
                 ),
               ),
               const SizedBox(width: 14),
-
-              // Infos
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       item['name'],
-                      style: const TextStyle(
+                      style: GoogleFonts.greatVibes(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: AppColors.textDark,
@@ -212,24 +206,21 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Prix
                         Text(
                           '${item['price']} F',
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w800,
-                            color: AppColors.accent,
+                            color: AppColors.badgeOff,
                           ),
                         ),
-
-                        // Rating + bouton panier
                         Row(
                           children: [
                             Icon(
-                              Icons.star_rounded,
+                              CupertinoIcons.star_fill,
                               color: AppColors.star,
                               size: 16,
-                            ),
+                            ), // ✅
                             const SizedBox(width: 3),
                             Text(
                               '${item['rating']}',
@@ -250,10 +241,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: const Icon(
-                                  Icons.shopping_bag_outlined,
+                                  CupertinoIcons.shopping_cart,
                                   color: Colors.white,
                                   size: 16,
-                                ),
+                                ), // ✅
                               ),
                             ),
                           ],
@@ -263,17 +254,15 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   ],
                 ),
               ),
-
-              // Cœur
               Padding(
                 padding: const EdgeInsets.only(left: 8),
                 child: GestureDetector(
                   onTap: () => _removeFavorite(i),
                   child: Icon(
-                    Icons.favorite_rounded,
+                    CupertinoIcons.heart_fill,
                     color: AppColors.secondary,
                     size: 22,
-                  ),
+                  ), // ✅
                 ),
               ),
             ],
@@ -283,7 +272,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     );
   }
 
-  // ── État vide ──────────────────────────────────────────────
   Widget _buildEmpty() {
     return Center(
       child: Column(
@@ -297,10 +285,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               shape: BoxShape.circle,
             ),
             child: Icon(
-              Icons.favorite_border_rounded,
+              CupertinoIcons.heart,
               size: 56,
               color: AppColors.secondary,
-            ),
+            ), // ✅
           ),
           const SizedBox(height: 24),
           const Text(

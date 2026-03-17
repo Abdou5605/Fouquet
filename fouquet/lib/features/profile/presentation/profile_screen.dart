@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fouquet/core/navigation/app_routes.dart';
@@ -21,40 +22,38 @@ class ProfileScreen extends StatelessWidget {
               _buildStats(),
               const SizedBox(height: 24),
 
-              // ── Mon Compte ───
               _buildMenuSection(
                 title: 'Mon Compte',
                 items: [
                   _MenuItem(
-                    icon: Icons.person_outline_rounded,
+                    icon: CupertinoIcons.person,
                     label: 'Modifier le profil',
                     onTap: () => Get.toNamed(AppRoutes.editProfile),
                   ),
                   _MenuItem(
-                    icon: Icons.history_rounded,
+                    icon: CupertinoIcons.clock,
                     label: 'Historique commandes',
                     onTap: () => Get.toNamed(AppRoutes.orderHistory),
                   ),
                   _MenuItem(
-                    icon: Icons.favorite_border_rounded,
+                    icon: CupertinoIcons.heart,
                     label: 'Mes favoris',
                     onTap: () => Get.toNamed(AppRoutes.favorites),
                   ),
                   _MenuItem(
-                    icon: Icons.card_giftcard_outlined,
+                    icon: CupertinoIcons.gift,
                     label: 'Parrainage & Réductions',
                     onTap: () => Get.toNamed(AppRoutes.referral),
                     badge: 'NEW',
                   ),
                   _MenuItem(
-                    // ✅ ajouté
-                    icon: Icons.celebration_outlined,
+                    icon: CupertinoIcons.calendar,
                     label: 'Réserver un espace',
                     onTap: () => Get.toNamed(AppRoutes.bookSpace),
                     badge: 'NEW',
                   ),
                   _MenuItem(
-                    icon: Icons.lock_outline_rounded,
+                    icon: CupertinoIcons.lock,
                     label: 'Changer mot de passe',
                     onTap: () => Get.toNamed(AppRoutes.changePassword),
                   ),
@@ -62,24 +61,23 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              // ── Préférences ──────
               _buildMenuSection(
                 title: 'Préférences',
                 items: [
                   _MenuItem(
-                    icon: Icons.notifications_outlined,
+                    icon: CupertinoIcons.bell,
                     label: 'Notifications',
                     onTap: () {},
                     trailing: _buildSwitch(),
                   ),
                   _MenuItem(
-                    icon: Icons.language_outlined,
+                    icon: CupertinoIcons.globe,
                     label: 'Langue',
                     onTap: () {},
                     subtitle: 'Français',
                   ),
                   _MenuItem(
-                    icon: Icons.info_outline_rounded,
+                    icon: CupertinoIcons.info_circle,
                     label: 'À propos',
                     onTap: () {},
                     subtitle: 'Version 1.0.0',
@@ -88,17 +86,16 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              // ── Assistance ─────────
               _buildMenuSection(
                 title: 'Assistance',
                 items: [
                   _MenuItem(
-                    icon: Icons.help_outline_rounded,
+                    icon: CupertinoIcons.question_circle,
                     label: 'Centre d\'aide',
                     onTap: () => Get.toNamed(AppRoutes.helpCenter),
                   ),
                   _MenuItem(
-                    icon: Icons.chat_bubble_outline_rounded,
+                    icon: CupertinoIcons.chat_bubble,
                     label: 'Nous contacter',
                     onTap: () => Get.toNamed(AppRoutes.contact),
                   ),
@@ -106,12 +103,11 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              // ── Danger zone ──────
               _buildMenuSection(
                 title: 'Zone dangereuse',
                 items: [
                   _MenuItem(
-                    icon: Icons.delete_outline_rounded,
+                    icon: CupertinoIcons.delete,
                     label: 'Supprimer le compte',
                     onTap: () => _showDeleteDialog(),
                     danger: true,
@@ -166,10 +162,10 @@ class ProfileScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: const Icon(
-                    Icons.edit_outlined,
+                    CupertinoIcons.pencil,
                     color: Colors.white,
                     size: 20,
-                  ),
+                  ), // ✅
                 ),
               ),
             ],
@@ -191,10 +187,10 @@ class ProfileScreen extends StatelessWidget {
                     errorBuilder: (_, __, ___) => Container(
                       color: AppColors.bgLight,
                       child: const Icon(
-                        Icons.person,
+                        CupertinoIcons.person,
                         size: 50,
                         color: AppColors.textGray,
-                      ),
+                      ), // ✅
                     ),
                   ),
                 ),
@@ -213,10 +209,10 @@ class ProfileScreen extends StatelessWidget {
                       border: Border.all(color: Colors.white, width: 2),
                     ),
                     child: const Icon(
-                      Icons.camera_alt_outlined,
+                      CupertinoIcons.camera,
                       color: Colors.white,
                       size: 14,
-                    ),
+                    ), // ✅
                   ),
                 ),
               ),
@@ -398,7 +394,7 @@ class ProfileScreen extends StatelessWidget {
               ),
             item.trailing ??
                 Icon(
-                  Icons.arrow_forward_ios_rounded,
+                  CupertinoIcons.chevron_right, // ✅
                   color: item.danger
                       ? AppColors.secondary.withOpacity(0.5)
                       : AppColors.textGray,
@@ -460,7 +456,11 @@ class ProfileScreen extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.logout_rounded, color: AppColors.secondary, size: 20),
+              Icon(
+                CupertinoIcons.square_arrow_left,
+                color: AppColors.secondary,
+                size: 20,
+              ), // ✅
               const SizedBox(width: 8),
               Text(
                 'Déconnexion',

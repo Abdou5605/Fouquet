@@ -1,6 +1,9 @@
 import 'package:fouquet/features/booking/presentation/booking_space_screen.dart';
 import 'package:fouquet/features/cart/presentation/cart_screen.dart';
+import 'package:fouquet/features/cart/presentation/checkout_screen.dart';
+import 'package:fouquet/features/cart/presentation/payment_screen.dart';
 import 'package:fouquet/features/favorite/presentation/favorites_screen.dart';
+import 'package:fouquet/features/home/presentation/all_products_screen.dart';
 import 'package:fouquet/features/home/presentation/product_detail_screen.dart';
 import 'package:fouquet/features/profile/presentation/change_password_screen.dart';
 import 'package:fouquet/features/profile/presentation/contact_screen.dart';
@@ -63,14 +66,12 @@ abstract class AppRouter {
       transition: Transition.fadeIn,
       transitionDuration: const Duration(milliseconds: 400),
     ),
-
-    // ── À décommenter progressivement ──────────────────
-    // GetPage(
-    //   name: AppRoutes.menu,
-    //   page: () => const MenuScreen(),
-    //   transition: Transition.rightToLeft,
-    //   transitionDuration: const Duration(milliseconds: 300),
-    // ),
+    GetPage(
+      name: AppRoutes.allProducts,
+      page: () => const AllProductsScreen(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
     GetPage(
       name: AppRoutes.productDetail,
       page: () => const ProductDetailScreen(),
@@ -83,12 +84,12 @@ abstract class AppRouter {
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 300),
     ),
-    // GetPage(
-    //   name: AppRoutes.checkout,
-    //   page: () => const CheckoutScreen(),
-    //   transition: Transition.rightToLeft,
-    //   transitionDuration: const Duration(milliseconds: 300),
-    // ),
+    GetPage(
+      name: AppRoutes.checkout,
+      page: () => const CheckoutScreen(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
     // GetPage(
     //   name: AppRoutes.orderTracking,
     //   page: () => const OrderTrackingScreen(),
@@ -138,12 +139,12 @@ abstract class AppRouter {
       transitionDuration: const Duration(milliseconds: 300),
     ),
 
-    // GetPage(
-    //   name: AppRoutes.payment,
-    //   page: () => const PaymentScreen(),
-    //   transition: Transition.downToUp,
-    //   transitionDuration: const Duration(milliseconds: 350),
-    // ),
+    GetPage(
+      name: AppRoutes.payment,
+      page: () => const PaymentScreen(),
+      transition: Transition.downToUp,
+      transitionDuration: const Duration(milliseconds: 350),
+    ),
     GetPage(
       name: AppRoutes.profile,
       page: () => const ProfileScreen(),

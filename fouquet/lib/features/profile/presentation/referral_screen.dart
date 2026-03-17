@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -86,11 +87,11 @@ class ReferralScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: AppColors.divider),
         ),
-        child: Icon(
-          Icons.arrow_back_ios_new_rounded,
+        child: const Icon(
+          CupertinoIcons.arrow_left,
           color: AppColors.textDark,
           size: 18,
-        ),
+        ), // ✅
       ),
     ),
     title: Text(
@@ -104,7 +105,6 @@ class ReferralScreen extends StatelessWidget {
     centerTitle: true,
   );
 
-  // ── Points ─────────────────────────────────────────────────
   Widget _buildPointsCard() => Container(
     width: double.infinity,
     padding: const EdgeInsets.all(22),
@@ -178,7 +178,6 @@ class ReferralScreen extends StatelessWidget {
     ],
   );
 
-  // ── Code parrainage ────────────────────────────────────────
   Widget _buildCodeCard(BuildContext context) => Container(
     padding: const EdgeInsets.all(20),
     decoration: BoxDecoration(
@@ -235,10 +234,10 @@ class ReferralScreen extends StatelessWidget {
                   );
                 },
                 child: Icon(
-                  Icons.copy_rounded,
+                  CupertinoIcons.doc_on_clipboard,
                   color: AppColors.primary,
                   size: 22,
-                ),
+                ), // ✅
               ),
             ],
           ),
@@ -248,7 +247,7 @@ class ReferralScreen extends StatelessWidget {
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: () {},
-            icon: const Icon(Icons.share_outlined, size: 18),
+            icon: const Icon(CupertinoIcons.share, size: 18), // ✅
             label: const Text('Partager avec des amis'),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
@@ -269,7 +268,6 @@ class ReferralScreen extends StatelessWidget {
     ),
   );
 
-  // ── Titre section ──────────────────────────────────────────
   Widget _buildSectionTitle(String t) => Text(
     t,
     style: const TextStyle(
@@ -279,7 +277,6 @@ class ReferralScreen extends StatelessWidget {
     ),
   );
 
-  // ── Item réduction ─────────────────────────────────────────
   Widget _buildReductionItem(Map<String, String> r) => Container(
     margin: const EdgeInsets.only(bottom: 12),
     padding: const EdgeInsets.all(16),
@@ -298,10 +295,10 @@ class ReferralScreen extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
-            Icons.local_offer_outlined,
+            CupertinoIcons.tag,
             color: AppColors.accent,
             size: 22,
-          ),
+          ), // ✅
         ),
         const SizedBox(width: 14),
         Expanded(
@@ -343,7 +340,6 @@ class ReferralScreen extends StatelessWidget {
     ),
   );
 
-  // ── Historique ─────────────────────────────────────────────
   Widget _buildHistoryList() => Container(
     decoration: BoxDecoration(
       color: AppColors.bgCard,
@@ -371,8 +367,8 @@ class ReferralScreen extends StatelessWidget {
                     ),
                     child: Icon(
                       isValid
-                          ? Icons.check_circle_outline_rounded
-                          : Icons.hourglass_top_rounded,
+                          ? CupertinoIcons.checkmark_circle
+                          : CupertinoIcons.clock, // ✅
                       color: isValid ? Colors.green : Colors.orange,
                       size: 20,
                     ),

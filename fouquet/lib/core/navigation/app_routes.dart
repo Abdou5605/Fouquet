@@ -22,4 +22,5 @@ abstract class AppRoutes {
   static const referral = '/referral';
   static const helpCenter = '/help-center';
   static const contact = '/contact';
+  static const String allProducts = '/all-products';
 }

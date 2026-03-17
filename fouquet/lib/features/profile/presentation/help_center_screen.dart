@@ -1,3 +1,7 @@
+// ═══════════════════════════════════════════════════
+// HELP CENTER SCREEN
+// ═══════════════════════════════════════════════════
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fouquet/core/style/colors.dart';
@@ -118,11 +122,11 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: AppColors.divider),
         ),
-        child: Icon(
-          Icons.arrow_back_ios_new_rounded,
+        child: const Icon(
+          CupertinoIcons.arrow_left,
           color: AppColors.textDark,
           size: 18,
-        ),
+        ), // ✅
       ),
     ),
     title: Text(
@@ -150,10 +154,10 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
         hintText: 'Rechercher une question…',
         hintStyle: TextStyle(color: AppColors.textGray, fontSize: 14),
         prefixIcon: Icon(
-          Icons.search_rounded,
+          CupertinoIcons.search,
           color: AppColors.primary,
           size: 22,
-        ),
+        ), // ✅
         suffixIcon: _query.isNotEmpty
             ? GestureDetector(
                 onTap: () => setState(() {
@@ -161,10 +165,10 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                   _query = '';
                 }),
                 child: Icon(
-                  Icons.close_rounded,
+                  CupertinoIcons.xmark,
                   color: AppColors.textGray,
                   size: 20,
-                ),
+                ), // ✅
               )
             : null,
         filled: true,
@@ -191,11 +195,11 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
 
   Widget _buildCategoryRow() {
     final cats = [
-      {'icon': Icons.shopping_bag_outlined, 'label': 'Commandes'},
-      {'icon': Icons.payment_outlined, 'label': 'Paiement'},
-      {'icon': Icons.delivery_dining_outlined, 'label': 'Livraison'},
-      {'icon': Icons.account_circle_outlined, 'label': 'Compte'},
-    ];
+      {'icon': CupertinoIcons.bag, 'label': 'Commandes'},
+      {'icon': CupertinoIcons.creditcard, 'label': 'Paiement'},
+      {'icon': CupertinoIcons.car_detailed, 'label': 'Livraison'},
+      {'icon': CupertinoIcons.person_circle, 'label': 'Compte'},
+    ]; // ✅ tout Cupertino
     return Row(
       children: cats
           .map(
@@ -279,9 +283,10 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                     turns: isOpen ? 0.5 : 0,
                     duration: const Duration(milliseconds: 200),
                     child: Icon(
-                      Icons.keyboard_arrow_down_rounded,
+                      CupertinoIcons.chevron_down,
                       color: isOpen ? AppColors.primary : AppColors.textGray,
-                    ),
+                      size: 18,
+                    ), // ✅
                   ),
                 ],
               ),
@@ -309,7 +314,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
       padding: const EdgeInsets.only(top: 40),
       child: Column(
         children: [
-          Icon(Icons.search_off_rounded, size: 48, color: AppColors.textGray),
+          Icon(CupertinoIcons.search, size: 48, color: AppColors.textGray), // ✅
           const SizedBox(height: 12),
           Text(
             'Aucun résultat pour "$_query"',

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -146,11 +147,11 @@ class _BookSpaceScreenState extends State<BookSpaceScreen> {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: AppColors.divider),
             ),
-            child: Icon(
-              Icons.arrow_back_ios_new_rounded,
+            child: const Icon(
+              CupertinoIcons.arrow_left,
               color: AppColors.textDark,
               size: 18,
-            ),
+            ), // ✅
           ),
         ),
         title: Text(
@@ -170,40 +171,28 @@ class _BookSpaceScreenState extends State<BookSpaceScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Bannière ─────────────────────────────
               _buildBanner(),
               const SizedBox(height: 28),
-
-              // ── Date & Heure ─────────────────────────
               _buildLabel('Date'),
               const SizedBox(height: 8),
               _buildDatePicker(),
               const SizedBox(height: 20),
-
               _buildLabel('Heure'),
               const SizedBox(height: 8),
               _buildTimePicker(),
               const SizedBox(height: 20),
-
-              // ── Nombre de personnes ──────────────────
               _buildLabel('Nombre de personnes'),
               const SizedBox(height: 8),
               _buildGuestsField(),
               const SizedBox(height: 20),
-
-              // ── Type d'événement ─────────────────────
               _buildLabel('Type d\'événement'),
               const SizedBox(height: 12),
               _buildEventTypeGrid(),
               const SizedBox(height: 20),
-
-              // ── Message ──────────────────────────────
               _buildLabel('Message / Demande spéciale'),
               const SizedBox(height: 8),
               _buildMessageField(),
               const SizedBox(height: 36),
-
-              // ── Bouton envoi ─────────────────────────
               _buildSubmitBtn(),
               const SizedBox(height: 24),
             ],
@@ -213,7 +202,6 @@ class _BookSpaceScreenState extends State<BookSpaceScreen> {
     );
   }
 
-  // ── Bannière décorative ────────────────────────────────────
   Widget _buildBanner() {
     return Container(
       width: double.infinity,
@@ -233,10 +221,10 @@ class _BookSpaceScreenState extends State<BookSpaceScreen> {
               borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(
-              Icons.celebration_outlined,
+              CupertinoIcons.calendar_badge_plus,
               color: AppColors.primary,
               size: 28,
-            ),
+            ), // ✅
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -268,7 +256,6 @@ class _BookSpaceScreenState extends State<BookSpaceScreen> {
     );
   }
 
-  // ── Label ──────────────────────────────────────────────────
   Widget _buildLabel(String text) {
     return Text(
       text,
@@ -281,30 +268,28 @@ class _BookSpaceScreenState extends State<BookSpaceScreen> {
     );
   }
 
-  // ── Sélecteur de date ──────────────────────────────────────
   Widget _buildDatePicker() {
     final label = _selectedDate == null
         ? 'Choisir une date'
         : '${_selectedDate!.day.toString().padLeft(2, '0')}/${_selectedDate!.month.toString().padLeft(2, '0')}/${_selectedDate!.year}';
     return _buildPickerTile(
-      icon: Icons.calendar_today_outlined,
+      icon: CupertinoIcons.calendar,
       label: label,
       hasValue: _selectedDate != null,
       onTap: _pickDate,
-    );
+    ); // ✅
   }
 
-  // ── Sélecteur d'heure ──────────────────────────────────────
   Widget _buildTimePicker() {
     final label = _selectedTime == null
         ? 'Choisir une heure'
         : _selectedTime!.format(context);
     return _buildPickerTile(
-      icon: Icons.access_time_rounded,
+      icon: CupertinoIcons.clock,
       label: label,
       hasValue: _selectedTime != null,
       onTap: _pickTime,
-    );
+    ); // ✅
   }
 
   Widget _buildPickerTile({
@@ -337,17 +322,16 @@ class _BookSpaceScreenState extends State<BookSpaceScreen> {
               ),
             ),
             Icon(
-              Icons.chevron_right_rounded,
+              CupertinoIcons.chevron_right,
               color: AppColors.textGray,
               size: 20,
-            ),
+            ), // ✅
           ],
         ),
       ),
     );
   }
 
-  // ── Champ nombre de personnes ──────────────────────────────
   Widget _buildGuestsField() {
     return TextFormField(
       controller: _guestsCtrl,
@@ -363,10 +347,10 @@ class _BookSpaceScreenState extends State<BookSpaceScreen> {
         hintText: 'Ex : 20',
         hintStyle: TextStyle(color: AppColors.textGray, fontSize: 14),
         prefixIcon: Icon(
-          Icons.group_outlined,
+          CupertinoIcons.group,
           color: AppColors.primary,
           size: 20,
-        ),
+        ), // ✅
         filled: true,
         fillColor: AppColors.bgCard,
         contentPadding: const EdgeInsets.symmetric(
@@ -397,7 +381,6 @@ class _BookSpaceScreenState extends State<BookSpaceScreen> {
     );
   }
 
-  // ── Grille types d'événement ───────────────────────────────
   Widget _buildEventTypeGrid() {
     return Wrap(
       spacing: 10,
@@ -431,7 +414,6 @@ class _BookSpaceScreenState extends State<BookSpaceScreen> {
     );
   }
 
-  // ── Champ message ──────────────────────────────────────────
   Widget _buildMessageField() {
     return TextFormField(
       controller: _messageCtrl,
@@ -459,7 +441,6 @@ class _BookSpaceScreenState extends State<BookSpaceScreen> {
     );
   }
 
-  // ── Bouton envoi ───────────────────────────────────────────
   Widget _buildSubmitBtn() {
     return GestureDetector(
       onTap: _loading ? null : _submit,

@@ -1,7 +1,9 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fouquet/core/resources/app_images.dart';
 import 'package:fouquet/core/style/colors.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class OrderHistoryScreen extends StatefulWidget {
   const OrderHistoryScreen({super.key});
@@ -14,7 +16,6 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabCtrl;
 
-  // Statuts : 0 = Tous, 1 = En cours, 2 = Livré, 3 = Annulé
   final _tabs = ['Tous', 'En cours', 'Livré', 'Annulé'];
 
   final List<Map<String, dynamic>> _orders = [
@@ -86,15 +87,10 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
       body: SafeArea(
         child: Column(
           children: [
-            // ── AppBar ──────────────────────────────────
             _buildAppBar(),
             const SizedBox(height: 16),
-
-            // ── Tabs ────────────────────────────────────
             _buildTabs(),
             const SizedBox(height: 16),
-
-            // ── Liste ───────────────────────────────────
             Expanded(
               child: _filtered.isEmpty
                   ? _buildEmpty()
@@ -111,7 +107,6 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
     );
   }
 
-  // ── AppBar ─────────────────────────────────────────────────
   Widget _buildAppBar() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
@@ -134,10 +129,10 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
                 ],
               ),
               child: const Icon(
-                Icons.arrow_back_ios_new_rounded,
+                CupertinoIcons.arrow_left,
                 color: AppColors.textDark,
                 size: 18,
-              ),
+              ), // ✅
             ),
           ),
           const SizedBox(width: 16),
@@ -152,7 +147,6 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
               ),
             ),
           ),
-          // Compteur total
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
@@ -173,7 +167,6 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
     );
   }
 
-  // ── Tabs ───────────────────────────────────────────────────
   Widget _buildTabs() {
     return SizedBox(
       height: 38,
@@ -216,7 +209,6 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
     );
   }
 
-  // ── Carte commande ─────────────────────────────────────────
   Widget _buildOrderCard(Map<String, dynamic> order) {
     final status = order['status'] as String;
     final statusColor = _statusColor(status);
@@ -236,10 +228,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
       ),
       child: Column(
         children: [
-          // ── Ligne 1 : image + infos + statut ────────
           Row(
             children: [
-              // Image
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Image.asset(
@@ -252,20 +242,17 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
                     height: 70,
                     color: AppColors.bgLight,
                     child: const Icon(
-                      Icons.restaurant,
+                      CupertinoIcons.photo,
                       color: AppColors.textGray,
-                    ),
+                    ), // ✅
                   ),
                 ),
               ),
               const SizedBox(width: 12),
-
-              // Infos
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ID + statut
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -281,18 +268,14 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
                       ],
                     ),
                     const SizedBox(height: 4),
-
-                    // Date
                     Text(
                       order['date'],
                       style: TextStyle(fontSize: 12, color: AppColors.textGray),
                     ),
                     const SizedBox(height: 6),
-
-                    // Articles
                     Text(
                       (order['items'] as List).join(' · '),
-                      style: TextStyle(
+                      style: GoogleFonts.greatVibes(
                         fontSize: 12,
                         color: AppColors.textMedium,
                       ),
@@ -304,12 +287,9 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
               ),
             ],
           ),
-
           const SizedBox(height: 12),
           Divider(height: 1, color: AppColors.divider),
           const SizedBox(height: 12),
-
-          // ── Ligne 2 : total + boutons ────────────────
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -325,14 +305,13 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.accent,
+                      color: AppColors.badgeOff,
                     ),
                   ),
                 ],
               ),
               Row(
                 children: [
-                  // Bouton revoir
                   if (status == 'Livré')
                     _actionBtn(
                       label: 'Reorder',
@@ -367,7 +346,6 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
     );
   }
 
-  // ── Badge statut ───────────────────────────────────────────
   Widget _buildStatusBadge(String status, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -397,7 +375,6 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
     );
   }
 
-  // ── Bouton action ──────────────────────────────────────────
   Widget _actionBtn({
     required String label,
     required Color color,
@@ -424,21 +401,19 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
     );
   }
 
-  // ── Couleur selon statut ───────────────────────────────────
   Color _statusColor(String status) {
     switch (status) {
       case 'Livré':
-        return const Color(0xFF22C55E); // vert
+        return const Color(0xFF22C55E);
       case 'En cours':
-        return AppColors.accent; // orange
+        return AppColors.accent;
       case 'Annulé':
-        return AppColors.secondary; // rouge
+        return AppColors.secondary;
       default:
         return AppColors.textGray;
     }
   }
 
-  // ── État vide ──────────────────────────────────────────────
   Widget _buildEmpty() {
     return Center(
       child: Column(
@@ -452,10 +427,10 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
               shape: BoxShape.circle,
             ),
             child: Icon(
-              Icons.receipt_long_outlined,
+              CupertinoIcons.doc_text,
               size: 52,
               color: AppColors.accent,
-            ),
+            ), // ✅
           ),
           const SizedBox(height: 20),
           const Text(

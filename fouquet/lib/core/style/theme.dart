@@ -17,6 +17,52 @@ class AppTheme {
       background: AppColors.bgLight,
     ),
 
+    // ── Typographie ────────────────────────────────────────
+    // Great Vibes pour les titres (displayLarge → titleMedium)
+    // Nunito pour le reste (bodyLarge → labelSmall)
+    textTheme: GoogleFonts.nunitoTextTheme().copyWith(
+      displayLarge: GoogleFonts.greatVibes(
+        fontSize: 57,
+        fontWeight: FontWeight.w400,
+        color: AppColors.textDark,
+      ),
+      displayMedium: GoogleFonts.greatVibes(
+        fontSize: 45,
+        fontWeight: FontWeight.w400,
+        color: AppColors.textDark,
+      ),
+      displaySmall: GoogleFonts.greatVibes(
+        fontSize: 36,
+        fontWeight: FontWeight.w400,
+        color: AppColors.textDark,
+      ),
+      headlineLarge: GoogleFonts.greatVibes(
+        fontSize: 32,
+        fontWeight: FontWeight.w400,
+        color: AppColors.textDark,
+      ),
+      headlineMedium: GoogleFonts.greatVibes(
+        fontSize: 28,
+        fontWeight: FontWeight.w400,
+        color: AppColors.textDark,
+      ),
+      headlineSmall: GoogleFonts.greatVibes(
+        fontSize: 24,
+        fontWeight: FontWeight.w400,
+        color: AppColors.textDark,
+      ),
+      titleLarge: GoogleFonts.greatVibes(
+        fontSize: 22,
+        fontWeight: FontWeight.w400,
+        color: AppColors.textDark,
+      ),
+      titleMedium: GoogleFonts.greatVibes(
+        fontSize: 18,
+        fontWeight: FontWeight.w400,
+        color: AppColors.textDark,
+      ),
+    ),
+
     // ── AppBar ─────────────────────────────────────────────
     appBarTheme: AppBarTheme(
       backgroundColor: AppColors.bgLight,
@@ -25,9 +71,10 @@ class AppTheme {
       centerTitle: true,
       iconTheme: const IconThemeData(color: AppColors.textDark),
       systemOverlayStyle: SystemUiOverlayStyle.dark,
-      titleTextStyle: GoogleFonts.nunito(
-        fontSize: 18,
-        fontWeight: FontWeight.w800,
+      titleTextStyle: GoogleFonts.greatVibes(
+        // ← Great Vibes pour le titre de l'AppBar
+        fontSize: 24,
+        fontWeight: FontWeight.w400,
         color: AppColors.textDark,
       ),
     ),
@@ -43,7 +90,7 @@ class AppTheme {
       elevation: 16,
     ),
 
-    // ── ElevatedButton (bouton orange principal) ───────────
+    // ── ElevatedButton ─────────────────────────────────────
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.accent,
@@ -58,7 +105,7 @@ class AppTheme {
       ),
     ),
 
-    // ── OutlinedButton (options Size/Sugar/Ice) ────────────
+    // ── OutlinedButton ─────────────────────────────────────
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         foregroundColor: AppColors.accent,
@@ -72,7 +119,7 @@ class AppTheme {
       ),
     ),
 
-    // ── Card ──────────────────────────────────────────────
+    // ── Card ───────────────────────────────────────────────
     cardTheme: CardThemeData(
       color: AppColors.bgCard,
       elevation: 6,
@@ -81,7 +128,7 @@ class AppTheme {
       margin: EdgeInsets.zero,
     ),
 
-    // ── InputDecoration (SearchBar) ────────────────────────
+    // ── InputDecoration ────────────────────────────────────
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: AppColors.bgCard,
@@ -93,7 +140,7 @@ class AppTheme {
       hintStyle: GoogleFonts.nunito(fontSize: 14, color: AppColors.textGray),
     ),
 
-    // ── Divider ───────────────────────────────────────────
+    // ── Divider ────────────────────────────────────────────
     dividerTheme: const DividerThemeData(
       color: AppColors.divider,
       thickness: 1,

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fouquet/core/style/colors.dart';
@@ -122,11 +123,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: AppColors.divider),
         ),
-        child: Icon(
-          Icons.arrow_back_ios_new_rounded,
+        child: const Icon(
+          CupertinoIcons.arrow_left,
           color: AppColors.textDark,
           size: 18,
-        ),
+        ), // ✅
       ),
     ),
     title: Text(
@@ -149,7 +150,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     ),
     child: Row(
       children: [
-        Icon(Icons.shield_outlined, color: AppColors.primary, size: 32),
+        Icon(CupertinoIcons.shield, color: AppColors.primary, size: 32), // ✅
         const SizedBox(width: 14),
         Expanded(
           child: Text(
@@ -192,21 +193,19 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         hintText: hint,
         hintStyle: TextStyle(color: AppColors.textGray, fontSize: 14),
         prefixIcon: Icon(
-          Icons.lock_outline_rounded,
+          CupertinoIcons.lock,
           color: AppColors.primary,
           size: 20,
-        ),
+        ), // ✅
         suffixIcon: Padding(
           padding: const EdgeInsets.only(right: 12),
           child: GestureDetector(
             onTap: onToggle,
             child: Icon(
-              obscure
-                  ? Icons.visibility_off_outlined
-                  : Icons.visibility_outlined,
+              obscure ? CupertinoIcons.eye_slash : CupertinoIcons.eye,
               color: AppColors.textGray,
               size: 20,
-            ),
+            ), // ✅
           ),
         ),
         filled: true,
@@ -245,7 +244,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     if (pwd.contains(RegExp(r'[A-Z]'))) strength++;
     if (pwd.contains(RegExp(r'[0-9]'))) strength++;
     if (pwd.contains(RegExp(r'[!@#\$%^&*]'))) strength++;
-
     final labels = ['', 'Faible', 'Moyen', 'Fort', 'Très fort'];
     final colors = [
       AppColors.divider,
@@ -254,7 +252,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       Colors.lightGreen,
       Colors.green,
     ];
-
     if (pwd.isEmpty) return const SizedBox.shrink();
     return Row(
       children: [

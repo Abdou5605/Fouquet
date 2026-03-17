@@ -1,18 +1,20 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fouquet/core/navigation/app_routes.dart';
 import 'package:fouquet/core/resources/app_images.dart';
 import 'package:fouquet/core/style/colors.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class CartScreen extends StatefulWidget {
-  const CartScreen({super.key});
+  final VoidCallback? onBack; // ✅ callback pour retourner au home
+  const CartScreen({super.key, this.onBack});
 
   @override
   State<CartScreen> createState() => _CartScreenState();
 }
 
 class _CartScreenState extends State<CartScreen> {
-  // Données temporaires — à remplacer par CartController
   final List<Map<String, dynamic>> _cartItems = [
     {
       'name': 'King Burger',
@@ -37,28 +39,32 @@ class _CartScreenState extends State<CartScreen> {
     },
   ];
 
+  final _promoCtrl = TextEditingController();
+
   int get _totalItems =>
       _cartItems.fold(0, (sum, item) => sum + (item['qty'] as int));
-
   int get _subtotal => _cartItems.fold(
     0,
     (sum, item) => sum + (item['price'] as int) * (item['qty'] as int),
   );
-
   int get _delivery => _cartItems.isEmpty ? 0 : 500;
   int get _total => _subtotal + _delivery;
 
   void _increment(int i) => setState(() => _cartItems[i]['qty']++);
-
   void _decrement(int i) {
-    if (_cartItems[i]['qty'] > 1) {
+    if (_cartItems[i]['qty'] > 1)
       setState(() => _cartItems[i]['qty']--);
-    } else {
+    else
       _remove(i);
-    }
   }
 
   void _remove(int i) => setState(() => _cartItems.removeAt(i));
+
+  @override
+  void dispose() {
+    _promoCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,28 +73,20 @@ class _CartScreenState extends State<CartScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // ── AppBar ──────────────────────────────────
             _buildAppBar(),
-
-            // ── Liste des articles ───────────────────────
             Expanded(
               child: _cartItems.isEmpty
                   ? _buildEmptyCart()
                   : ListView(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                       children: [
-                        // Articles
                         ...List.generate(
                           _cartItems.length,
                           (i) => _buildCartItem(i),
                         ),
                         const SizedBox(height: 16),
-
-                        // Coupon
                         _buildCouponField(),
                         const SizedBox(height: 20),
-
-                        // Résumé commande
                         _buildOrderSummary(),
                         const SizedBox(height: 100),
                       ],
@@ -97,84 +95,82 @@ class _CartScreenState extends State<CartScreen> {
           ],
         ),
       ),
-
-      // ── Bouton Commander ────────────────────────────────
       bottomNavigationBar: _cartItems.isEmpty ? null : _buildBottomBar(),
     );
   }
 
-  // ── AppBar ─────────────────────────────────────────────────
   Widget _buildAppBar() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      child: Row(
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          // Retour
-          GestureDetector(
-            onTap: () => Get.back(),
-            child: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: AppColors.bgCard,
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.07),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.arrow_back_ios_new_rounded,
-                color: AppColors.textDark,
-                size: 18,
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-
-          // Titre + compteur
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Mon Panier',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textDark,
-                  ),
-                ),
-                Text(
-                  '$_totalItems article${_totalItems > 1 ? 's' : ''}',
-                  style: TextStyle(fontSize: 13, color: AppColors.textGray),
-                ),
-              ],
-            ),
-          ),
-
-          // Vider panier
-          if (_cartItems.isNotEmpty)
-            GestureDetector(
-              onTap: () => setState(() => _cartItems.clear()),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: GestureDetector(
+              onTap: () => widget.onBack?.call(), // ✅ retour via callback
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
-                  color: AppColors.secondary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.bgCard,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.07),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-                child: Text(
-                  'Vider',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.secondary,
+                child: const Icon(
+                  CupertinoIcons.arrow_left,
+                  color: AppColors.textDark,
+                  size: 18,
+                ),
+              ),
+            ),
+          ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Mon Panier',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textDark,
+                ),
+              ),
+              Text(
+                '$_totalItems article${_totalItems > 1 ? 's' : ''}',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, color: AppColors.textGray),
+              ),
+            ],
+          ),
+          if (_cartItems.isNotEmpty)
+            Align(
+              alignment: Alignment.centerRight,
+              child: GestureDetector(
+                onTap: () => setState(() => _cartItems.clear()),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.secondary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    'Vider',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.secondary,
+                    ),
                   ),
                 ),
               ),
@@ -184,7 +180,6 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  // ── Article du panier ──────────────────────────────────────
   Widget _buildCartItem(int i) {
     final item = _cartItems[i];
     return Dismissible(
@@ -199,102 +194,101 @@ class _CartScreenState extends State<CartScreen> {
         ),
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
-        child: const Icon(
-          Icons.delete_outline_rounded,
-          color: Colors.white,
-          size: 26,
-        ),
+        child: const Icon(CupertinoIcons.delete, color: Colors.white, size: 26),
       ),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 14),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: AppColors.bgCard,
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            // Image
-            ClipRRect(
-              borderRadius: BorderRadius.circular(14),
-              child: Image.asset(
-                item['image'],
-                width: 80,
-                height: 80,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
+      child: GestureDetector(
+        onTap: () => Navigator.of(
+          context,
+          rootNavigator: true,
+        ).pushNamed(AppRoutes.productDetail, arguments: item),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 14),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.bgCard,
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.06),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: Image.asset(
+                  item['image'],
                   width: 80,
                   height: 80,
-                  color: AppColors.bgLight,
-                  child: const Icon(
-                    Icons.restaurant,
-                    color: AppColors.textGray,
-                    size: 30,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    width: 80,
+                    height: 80,
+                    color: AppColors.bgLight,
+                    child: const Icon(
+                      CupertinoIcons.photo,
+                      color: AppColors.textGray,
+                      size: 30,
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(width: 14),
-
-            // Infos
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item['name'],
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textDark,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    item['desc'],
-                    style: TextStyle(fontSize: 12, color: AppColors.textGray),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Prix
-                      Text(
-                        '${(item['price'] * item['qty']).toString()} F',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.badgeOff,
-                        ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item['name'],
+                      style: GoogleFonts.nunito(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textDark,
                       ),
-
-                      // Quantité +/-
-                      _buildQtySelector(i),
-                    ],
-                  ),
-                ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      item['desc'],
+                      style: TextStyle(fontSize: 12, color: AppColors.textGray),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${(item['price'] * item['qty']).toString()} F',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.badgeOff,
+                          ),
+                        ),
+                        _buildQtySelector(i),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  // ── Sélecteur quantité ─────────────────────────────────────
   Widget _buildQtySelector(int i) {
     return Row(
       children: [
-        _QtyBtn(icon: Icons.remove, onTap: () => _decrement(i), filled: false),
+        _QtyBtn(
+          icon: CupertinoIcons.minus,
+          onTap: () => _decrement(i),
+          filled: false,
+        ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Text(
@@ -306,15 +300,18 @@ class _CartScreenState extends State<CartScreen> {
             ),
           ),
         ),
-        _QtyBtn(icon: Icons.add, onTap: () => _increment(i), filled: true),
+        _QtyBtn(
+          icon: CupertinoIcons.plus,
+          onTap: () => _increment(i),
+          filled: true,
+        ),
       ],
     );
   }
 
-  // ── Champ coupon ───────────────────────────────────────────
   Widget _buildCouponField() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.fromLTRB(12, 4, 4, 4),
       decoration: BoxDecoration(
         color: AppColors.bgCard,
         borderRadius: BorderRadius.circular(16),
@@ -324,29 +321,36 @@ class _CartScreenState extends State<CartScreen> {
       ),
       child: Row(
         children: [
-          Icon(Icons.local_offer_outlined, color: AppColors.primary, size: 20),
-          const SizedBox(width: 10),
-          const Expanded(
+          Icon(CupertinoIcons.tag, color: AppColors.primary, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
             child: TextField(
+              controller: _promoCtrl,
+              style: const TextStyle(fontSize: 14, color: AppColors.textDark),
               decoration: InputDecoration(
-                hintText: 'Code promo',
+                hintText: 'Entrez votre code promo ici…',
+                hintStyle: TextStyle(fontSize: 13, color: AppColors.textGray),
                 border: InputBorder.none,
-                hintStyle: TextStyle(fontSize: 14),
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
               ),
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Text(
-              'Appliquer',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
+          GestureDetector(
+            onTap: () {},
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text(
+                'Appliquer',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           ),
@@ -355,7 +359,6 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  // ── Résumé commande ────────────────────────────────────────
   Widget _buildOrderSummary() {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -428,7 +431,6 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  // ── Panier vide ────────────────────────────────────────────
   Widget _buildEmptyCart() {
     return Center(
       child: Column(
@@ -442,7 +444,7 @@ class _CartScreenState extends State<CartScreen> {
               shape: BoxShape.circle,
             ),
             child: Icon(
-              Icons.shopping_bag_outlined,
+              CupertinoIcons.shopping_cart,
               size: 56,
               color: AppColors.badgeOff,
             ),
@@ -463,7 +465,10 @@ class _CartScreenState extends State<CartScreen> {
           ),
           const SizedBox(height: 32),
           GestureDetector(
-            onTap: () => Get.back(),
+            onTap: () => Navigator.of(
+              context,
+              rootNavigator: true,
+            ).pushNamed(AppRoutes.allProducts),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
               decoration: BoxDecoration(
@@ -485,7 +490,6 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  // ── Bottom Bar ─────────────────────────────────────────────
   Widget _buildBottomBar() {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
@@ -499,66 +503,40 @@ class _CartScreenState extends State<CartScreen> {
           ),
         ],
       ),
-      child: Row(
-        children: [
-          // Total
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Total',
-                style: TextStyle(fontSize: 12, color: AppColors.textGray),
-              ),
-              Text(
-                '$_total F CFA',
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textDark,
-                ),
+      child: GestureDetector(
+        onTap: () => Navigator.of(
+          context,
+          rootNavigator: true,
+        ).pushNamed(AppRoutes.checkout),
+        child: Container(
+          height: 54,
+          decoration: BoxDecoration(
+            color: AppColors.badgeOff,
+            borderRadius: BorderRadius.circular(30),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.badgeOff.withOpacity(0.4),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
-          const SizedBox(width: 20),
-
-          // Bouton commander
-          Expanded(
-            child: GestureDetector(
-              onTap: () => Get.toNamed(AppRoutes.checkout),
-              child: Container(
-                height: 54,
-                decoration: BoxDecoration(
-                  color: AppColors.badgeOff,
-                  borderRadius: BorderRadius.circular(30),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.badgeOff.withOpacity(0.4),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Center(
-                  child: Text(
-                    'Commander',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
+          child: Center(
+            child: Text(
+              'Commander · $_total F CFA',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
 }
 
-// ── Bouton quantité ───────────────────────────────────────────
 class _QtyBtn extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;

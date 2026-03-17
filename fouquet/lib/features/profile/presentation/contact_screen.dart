@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
@@ -84,11 +85,11 @@ class _ContactScreenState extends State<ContactScreen> {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: AppColors.divider),
         ),
-        child: Icon(
-          Icons.arrow_back_ios_new_rounded,
+        child: const Icon(
+          CupertinoIcons.arrow_left,
           color: AppColors.textDark,
           size: 18,
-        ),
+        ), // ✅
       ),
     ),
     title: Text(
@@ -119,10 +120,10 @@ class _ContactScreenState extends State<ContactScreen> {
             borderRadius: BorderRadius.circular(16),
           ),
           child: Icon(
-            Icons.support_agent_outlined,
+            CupertinoIcons.person_2,
             color: AppColors.primary,
             size: 28,
-          ),
+          ), // ✅
         ),
         const SizedBox(width: 14),
         Expanded(
@@ -162,16 +163,15 @@ class _ContactScreenState extends State<ContactScreen> {
     ),
   );
 
-  // ── Canaux de contact ──────────────────────────────────────
   Widget _buildChannels() {
     final channels = [
       _ContactChannel(
-        icon: Icons.phone_outlined,
+        icon: CupertinoIcons.phone,
         label: 'Téléphone',
         value: '+229 01 23 45 67',
         color: Colors.blue,
         onTap: () => _launch('tel:+22901234567'),
-      ),
+      ), // ✅
       _ContactChannel(
         faIcon: FontAwesomeIcons.whatsapp,
         label: 'WhatsApp',
@@ -180,12 +180,12 @@ class _ContactScreenState extends State<ContactScreen> {
         onTap: () => _launch('https://wa.me/22901234567'),
       ),
       _ContactChannel(
-        icon: Icons.email_outlined,
+        icon: CupertinoIcons.mail,
         label: 'Email',
         value: 'contact@fouquet.com',
         color: Colors.orange,
         onTap: () => _launch('mailto:contact@fouquet.com'),
-      ),
+      ), // ✅
     ];
     return Column(children: channels.map((c) => _buildChannelTile(c)).toList());
   }
@@ -234,16 +234,15 @@ class _ContactScreenState extends State<ContactScreen> {
             ),
           ),
           Icon(
-            Icons.arrow_forward_ios_rounded,
+            CupertinoIcons.chevron_right,
             color: AppColors.textGray,
             size: 16,
-          ),
+          ), // ✅
         ],
       ),
     ),
   );
 
-  // ── Formulaire ─────────────────────────────────────────────
   Widget _buildForm() => Form(
     key: _formKey,
     child: Column(
@@ -257,8 +256,8 @@ class _ContactScreenState extends State<ContactScreen> {
           validator: (v) => (v == null || v.isEmpty) ? 'Sujet requis' : null,
           decoration: _inputDeco(
             hint: 'Ex : Problème avec ma commande',
-            icon: Icons.title_rounded,
-          ),
+            icon: CupertinoIcons.textformat,
+          ), // ✅
         ),
         const SizedBox(height: 20),
         _buildLabel('Message'),

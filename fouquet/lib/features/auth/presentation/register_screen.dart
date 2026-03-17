@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -59,43 +60,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 children: [
                   _buildHeader(),
                   const SizedBox(height: 40),
-
                   _buildLabel('Nom complet'),
                   const SizedBox(height: 8),
                   _buildNameField(),
                   const SizedBox(height: 20),
-
                   _buildLabel('Email'),
                   const SizedBox(height: 8),
                   _buildEmailField(),
                   const SizedBox(height: 20),
-
                   _buildLabel('Numéro de téléphone'),
                   const SizedBox(height: 8),
                   _buildPhoneField(),
                   const SizedBox(height: 20),
-
                   _buildLabel('Adresse'),
                   const SizedBox(height: 8),
                   _buildAddressField(),
                   const SizedBox(height: 20),
-
                   _buildLabel('Mot de passe'),
                   const SizedBox(height: 8),
                   _buildPasswordField(),
                   const SizedBox(height: 20),
-
                   _buildLabel('Confirmer le mot de passe'),
                   const SizedBox(height: 8),
                   _buildConfirmField(),
                   const SizedBox(height: 36),
-
                   _buildRegisterBtn(),
                   const SizedBox(height: 28),
-
                   _buildDivider(),
                   const SizedBox(height: 28),
-
                   _buildLoginLink(),
                 ],
               ),
@@ -106,7 +98,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  // ── Header ─────────────────────────────────────────────────
   Widget _buildHeader() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -145,7 +136,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  // ── Label ──────────────────────────────────────────────────
   Widget _buildLabel(String text) {
     return Align(
       alignment: Alignment.centerLeft,
@@ -161,7 +151,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  // ── Champs ─────────────────────────────────────────────────
   Widget _buildNameField() {
     return TextFormField(
       controller: _nameCtrl,
@@ -175,8 +164,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       },
       decoration: _inputDeco(
         hint: 'Jean Dupont',
-        icon: Icons.person_outline_rounded,
-      ),
+        icon: CupertinoIcons.person,
+      ), // ✅
     );
   }
 
@@ -192,8 +181,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       },
       decoration: _inputDeco(
         hint: 'exemple@email.com',
-        icon: Icons.email_outlined,
-      ),
+        icon: CupertinoIcons.mail,
+      ), // ✅
     );
   }
 
@@ -210,8 +199,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       },
       decoration: _inputDeco(
         hint: '+229 00 00 00 00',
-        icon: Icons.phone_outlined,
-      ),
+        icon: CupertinoIcons.phone,
+      ), // ✅
     );
   }
 
@@ -226,8 +215,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       },
       decoration: _inputDeco(
         hint: 'Rue, Quartier, Ville',
-        icon: Icons.location_on_outlined,
-      ),
+        icon: CupertinoIcons.location,
+      ), // ✅
     );
   }
 
@@ -243,16 +232,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
       },
       decoration: _inputDeco(
         hint: '••••••••',
-        icon: Icons.lock_outline_rounded,
+        icon: CupertinoIcons.lock, // ✅
         suffix: GestureDetector(
           onTap: () => setState(() => _obscurePass = !_obscurePass),
           child: Icon(
-            _obscurePass
-                ? Icons.visibility_off_outlined
-                : Icons.visibility_outlined,
+            _obscurePass ? CupertinoIcons.eye_slash : CupertinoIcons.eye,
             color: AppColors.textGray,
             size: 20,
-          ),
+          ), // ✅
         ),
       ),
     );
@@ -271,22 +258,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
       },
       decoration: _inputDeco(
         hint: '••••••••',
-        icon: Icons.lock_outline_rounded,
+        icon: CupertinoIcons.lock, // ✅
         suffix: GestureDetector(
           onTap: () => setState(() => _obscureConfirm = !_obscureConfirm),
           child: Icon(
-            _obscureConfirm
-                ? Icons.visibility_off_outlined
-                : Icons.visibility_outlined,
+            _obscureConfirm ? CupertinoIcons.eye_slash : CupertinoIcons.eye,
             color: AppColors.textGray,
             size: 20,
-          ),
+          ), // ✅
         ),
       ),
     );
   }
 
-  // ── Bouton inscription ─────────────────────────────────────
   Widget _buildRegisterBtn() {
     return GestureDetector(
       onTap: _loading ? null : _register,
@@ -333,7 +317,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  // ── Divider ────────────────────────────────────────────────
   Widget _buildDivider() {
     return Row(
       children: [
@@ -350,7 +333,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  // ── Lien connexion ─────────────────────────────────────────
   Widget _buildLoginLink() {
     return GestureDetector(
       onTap: () => Get.back(),
@@ -376,7 +358,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  // ── Décoration input ───────────────────────────────────────
   InputDecoration _inputDeco({
     required String hint,
     required IconData icon,

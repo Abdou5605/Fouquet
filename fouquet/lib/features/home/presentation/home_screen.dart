@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fouquet/core/navigation/app_routes.dart';
 import 'package:fouquet/features/cart/presentation/cart_screen.dart';
@@ -7,6 +8,7 @@ import 'package:get/get.dart';
 import 'package:fouquet/core/resources/app_images.dart';
 import 'package:fouquet/core/style/colors.dart';
 import 'package:fouquet/core/style/text_styles.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,26 +20,27 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedCategory = 0;
   int _selectedNav = 0;
-
-  late final List<Widget> _pages;
+  int _currentBanner = 0;
+  final _searchCtrl = TextEditingController();
+  String _query = '';
+  final _pageCtrl = PageController();
 
   @override
-  void initState() {
-    super.initState();
-    _pages = [
-      _buildHomeBody(),
-      const CartScreen(),
-      const FavoritesScreen(),
-      const ProfileScreen(),
-    ];
+  void dispose() {
+    _searchCtrl.dispose();
+    _pageCtrl.dispose();
+    super.dispose();
   }
 
   final List<String> _categories = [
-    'All',
-    'Burgers',
-    'Pizzas',
-    'Shawarmas',
+    'Tous',
+    'Fast Food',
+    'Plats Africains',
+    'Boissons',
     'Salades',
+    'Cocktails',
+    'Desserts',
+    'Cremeries',
   ];
 
   final List<Map<String, dynamic>> _products = [
@@ -48,6 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
       'image': AppImages.viande,
       'badge': 'TOP\nSALE',
       'badgeColor': AppColors.badgeOff,
+      'category': 'Fast Food',
     },
     {
       'name': 'Pizza Fouquet',
@@ -56,6 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
       'image': AppImages.rizaugras,
       'badge': '9%\nOFF',
       'badgeColor': AppColors.badgeOff,
+      'category': 'Plats Africains',
     },
     {
       'name': 'Shawarma Royal',
@@ -64,6 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
       'image': AppImages.frite,
       'badge': '9%\nOFF',
       'badgeColor': AppColors.badgeOff,
+      'category': 'Fast Food',
     },
     {
       'name': 'Salade Fouquet',
@@ -72,62 +78,99 @@ class _HomeScreenState extends State<HomeScreen> {
       'image': AppImages.raisin,
       'badge': 'TOP\nSALE',
       'badgeColor': AppColors.badgeOff,
+      'category': 'Salades',
+    },
+    {
+      'name': 'Mini Burger',
+      'price': 2500,
+      'oldPrice': null,
+      'image': AppImages.viande,
+      'badge': null,
+      'badgeColor': null,
+      'category': 'Fast Food',
+    },
+    {
+      'name': 'Pizza Royale',
+      'price': 8500,
+      'oldPrice': null,
+      'image': AppImages.rizaugras,
+      'badge': null,
+      'badgeColor': null,
+      'category': 'Plats Africains',
     },
   ];
+
+  List<Map<String, dynamic>> get _filteredProducts {
+    final cat = _categories[_selectedCategory];
+    return _products.where((p) {
+      final matchCat = cat == 'Tous' || p['category'] == cat;
+      final matchQuery =
+          _query.isEmpty ||
+          (p['name'] as String).toLowerCase().contains(_query.toLowerCase());
+      return matchCat && matchQuery;
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bgLight,
-      body: IndexedStack(index: _selectedNav, children: _pages),
+      body: IndexedStack(
+        index: _selectedNav,
+        children: [
+          _buildHomeBody(),
+          // ✅ onBack ramène sur l'onglet Home
+          CartScreen(onBack: () => setState(() => _selectedNav = 0)),
+          const FavoritesScreen(),
+          const ProfileScreen(),
+        ],
+      ),
       bottomNavigationBar: _buildBottomNav(),
     );
   }
 
-  // ── Corps Home ─────────────────────────────────────────────
   Widget _buildHomeBody() {
+    final products = _filteredProducts;
     return SafeArea(
+      top: false,
       child: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(child: _buildHeader()),
           const SliverToBoxAdapter(child: SizedBox(height: 20)),
-          SliverToBoxAdapter(child: _buildPromoBanner()),
+          SliverToBoxAdapter(child: _buildBannerCarousel()),
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
-          SliverToBoxAdapter(
-            child: _buildSectionHeader('Catégories', 'Voir tout', () {}),
-          ),
+          SliverToBoxAdapter(child: _buildCategoriesHeader()),
           const SliverToBoxAdapter(child: SizedBox(height: 12)),
           SliverToBoxAdapter(child: _buildCategories()),
-          const SliverToBoxAdapter(child: SizedBox(height: 20)),
-          SliverToBoxAdapter(
-            child: _buildSectionHeader('Nos Plats', 'Voir tout', () {}),
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: 12)),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            sliver: SliverGrid(
-              delegate: SliverChildBuilderDelegate(
-                (context, i) => _buildProductCard(_products[i]),
-                childCount: _products.length,
-              ),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-                childAspectRatio: 0.75,
-              ),
-            ),
-          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 16)),
+          SliverToBoxAdapter(child: _buildSearchBar()),
+          const SliverToBoxAdapter(child: SizedBox(height: 16)),
+          products.isEmpty
+              ? SliverToBoxAdapter(child: _buildEmpty())
+              : SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  sliver: SliverGrid(
+                    delegate: SliverChildBuilderDelegate(
+                      (_, i) => _buildProductCard(products[i]),
+                      childCount: products.length,
+                    ),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 16,
+                          crossAxisSpacing: 16,
+                          childAspectRatio: 0.75,
+                        ),
+                  ),
+                ),
           const SliverToBoxAdapter(child: SizedBox(height: 30)),
         ],
       ),
     );
   }
 
-  // ── Header ─────────────────────────────────────────────────
   Widget _buildHeader() {
     return Container(
-      // ✅ Bandeau vert en haut
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -136,25 +179,25 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
       ),
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+      padding: const EdgeInsets.fromLTRB(16, 48, 16, 20),
       child: Row(
         children: [
-          // Avatar avec bordure blanche
-          Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 2.5),
-            ),
-            child: CircleAvatar(
-              radius: 24,
-              backgroundColor: AppColors.primary,
-              backgroundImage: const AssetImage(AppImages.onboardAsiatique),
-              onBackgroundImageError: (_, __) {},
+          GestureDetector(
+            onTap: () => Get.toNamed(AppRoutes.profile),
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2.5),
+              ),
+              child: CircleAvatar(
+                radius: 24,
+                backgroundColor: AppColors.primary,
+                backgroundImage: const AssetImage(AppImages.onboardAsiatique),
+                onBackgroundImageError: (_, __) {},
+              ),
             ),
           ),
           const SizedBox(width: 12),
-
-          // Greeting — texte blanc sur fond vert
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -174,19 +217,37 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-
-          // Bouton search blanc
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.search_rounded,
-              color: Colors.white,
-              size: 22,
+          GestureDetector(
+            onTap: () {},
+            child: Stack(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    CupertinoIcons.bell,
+                    color: Colors.white,
+                    size: 22,
+                  ),
+                ),
+                Positioned(
+                  top: 6,
+                  right: 6,
+                  child: Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 1.5),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -194,14 +255,45 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ── Promo Banner ───────────────────────────────────────────
+  Widget _buildBannerCarousel() {
+    return Column(
+      children: [
+        SizedBox(
+          height: 150,
+          child: PageView(
+            controller: _pageCtrl,
+            onPageChanged: (i) => setState(() => _currentBanner = i),
+            children: [_buildPromoBanner(), _buildBookSpaceBanner()],
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(
+            2,
+            (i) => AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              width: _currentBanner == i ? 20 : 6,
+              height: 6,
+              decoration: BoxDecoration(
+                color: _currentBanner == i
+                    ? AppColors.primary
+                    : AppColors.divider,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildPromoBanner() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
-        height: 150,
         decoration: BoxDecoration(
-          // ✅ Fond vert clair au lieu de beige
           color: AppColors.primary.withOpacity(0.12),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
@@ -247,7 +339,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // ✅ Badge rose "Today Only"
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 10,
@@ -272,7 +363,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.primary, // ✅ vert
+                      color: AppColors.primary,
                       height: 1.1,
                     ),
                   ),
@@ -280,16 +371,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     'Super Discount',
                     style: TextStyle(fontSize: 13, color: AppColors.textMedium),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 10),
                   GestureDetector(
-                    onTap: () {},
+                    onTap: () => Get.toNamed(AppRoutes.cart),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 20,
-                        vertical: 8,
+                        vertical: 7,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.primary, // ✅ vert
+                        color: AppColors.primary,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: const Text(
@@ -297,7 +388,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w700,
-                          fontSize: 13,
+                          fontSize: 12,
                         ),
                       ),
                     ),
@@ -311,29 +402,145 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ── Section Header ─────────────────────────────────────────
-  Widget _buildSectionHeader(String title, String action, VoidCallback onTap) {
+  Widget _buildBookSpaceBanner() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: GestureDetector(
+        onTap: () => Get.toNamed(AppRoutes.bookSpace),
+        child: Container(
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
+          clipBehavior: Clip.hardEdge,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: Image.asset(
+                  AppImages.rizaugras,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) =>
+                      Container(color: AppColors.secondary.withOpacity(0.8)),
+                ),
+              ),
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.centerRight,
+                      end: Alignment.centerLeft,
+                      colors: [
+                        AppColors.secondary.withOpacity(0.3),
+                        AppColors.secondary.withOpacity(0.92),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(18),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.25),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Text(
+                              'Événements & Privatisation',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          const Text(
+                            'Réservez\nnotre espace',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              height: 1.2,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              'Réserver maintenant',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.secondary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Icon(
+                        CupertinoIcons.calendar_badge_plus,
+                        color: Colors.white,
+                        size: 26,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoriesHeader() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            title,
-            style: const TextStyle(
+          const Text(
+            'Catégories',
+            style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w800,
               color: AppColors.textDark,
             ),
           ),
           GestureDetector(
-            onTap: onTap,
+            onTap: () => Navigator.of(
+              context,
+              rootNavigator: true,
+            ).pushNamed(AppRoutes.allProducts),
             child: Text(
-              action,
+              'Voir tout',
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: AppColors.secondary, // ✅ rose
+                color: AppColors.secondary,
               ),
             ),
           ),
@@ -342,7 +549,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ── Categories ─────────────────────────────────────────────
   Widget _buildCategories() {
     return SizedBox(
       height: 38,
@@ -359,7 +565,6 @@ class _HomeScreenState extends State<HomeScreen> {
               duration: const Duration(milliseconds: 250),
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
               decoration: BoxDecoration(
-                // ✅ Catégorie active = vert primary
                 color: selected ? AppColors.primary : AppColors.bgCard,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: selected
@@ -392,7 +597,78 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ── Product Card ───────────────────────────────────────────
+  Widget _buildSearchBar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: TextField(
+        controller: _searchCtrl,
+        onChanged: (v) => setState(() => _query = v),
+        style: const TextStyle(fontSize: 14, color: AppColors.textDark),
+        decoration: InputDecoration(
+          hintText: 'Rechercher un plat…',
+          hintStyle: TextStyle(color: AppColors.textGray, fontSize: 14),
+          prefixIcon: Icon(
+            CupertinoIcons.search,
+            color: AppColors.primary,
+            size: 20,
+          ),
+          suffixIcon: _query.isNotEmpty
+              ? GestureDetector(
+                  onTap: () => setState(() {
+                    _searchCtrl.clear();
+                    _query = '';
+                  }),
+                  child: Icon(
+                    CupertinoIcons.xmark,
+                    color: AppColors.textGray,
+                    size: 18,
+                  ),
+                )
+              : null,
+          filled: true,
+          fillColor: AppColors.bgCard,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: AppColors.divider, width: 1.5),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: AppColors.primary, width: 2),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmpty() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 40),
+      child: Center(
+        child: Column(
+          children: [
+            Icon(CupertinoIcons.search, size: 48, color: AppColors.textGray),
+            const SizedBox(height: 12),
+            Text(
+              _query.isNotEmpty
+                  ? 'Aucun résultat pour "$_query"'
+                  : 'Aucun plat dans cette catégorie',
+              style: TextStyle(fontSize: 14, color: AppColors.textGray),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildProductCard(Map<String, dynamic> product) {
     return GestureDetector(
       onTap: () => Get.toNamed(AppRoutes.productDetail, arguments: product),
@@ -424,8 +700,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => Container(
                         color: AppColors.bgLight,
-                        child: const Icon(
-                          Icons.restaurant,
+                        child: Icon(
+                          CupertinoIcons.square_favorites_alt,
                           color: AppColors.textGray,
                           size: 40,
                         ),
@@ -467,9 +743,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Text(
                     product['name'],
-                    style: const TextStyle(
+                    style: GoogleFonts.nunito(
                       fontSize: 13,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w800,
                       color: AppColors.textDark,
                     ),
                     maxLines: 1,
@@ -487,7 +763,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w800,
-                              color: AppColors.primary, // ✅ prix en vert
+                              color: AppColors.badgeOff,
                             ),
                           ),
                           if (product['oldPrice'] != null)
@@ -501,7 +777,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                         ],
                       ),
-                      // ✅ Bouton flèche vert
                       Container(
                         width: 32,
                         height: 32,
@@ -510,7 +785,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: const Icon(
-                          Icons.arrow_forward_rounded,
+                          CupertinoIcons.arrow_right,
                           color: Colors.white,
                           size: 16,
                         ),
@@ -526,13 +801,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ── Bottom Navigation Bar ──────────────────────────────────
   Widget _buildBottomNav() {
     final items = [
-      {'icon': Icons.home_rounded, 'label': 'Home'},
-      {'icon': Icons.shopping_bag_outlined, 'label': 'Cart'},
-      {'icon': Icons.favorite_border_rounded, 'label': 'Favoris'},
-      {'icon': Icons.person_outline_rounded, 'label': 'Profil'},
+      {'icon': CupertinoIcons.house_fill, 'label': 'Home'},
+      {'icon': CupertinoIcons.shopping_cart, 'label': 'Panier'},
+      {'icon': CupertinoIcons.heart, 'label': 'Favoris'},
+      {'icon': CupertinoIcons.person, 'label': 'Profil'},
     ];
 
     return Container(
@@ -563,7 +837,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    // ✅ Fond vert transparent pour l'item actif
                     color: selected
                         ? AppColors.primary.withOpacity(0.12)
                         : Colors.transparent,
@@ -574,7 +847,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Icon(
                         items[i]['icon'] as IconData,
-                        // ✅ Icône verte si actif
                         color: selected
                             ? AppColors.primary
                             : AppColors.textGray,
@@ -599,7 +871,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           width: 20,
                           height: 3,
                           decoration: BoxDecoration(
-                            // ✅ Indicateur vert
                             color: AppColors.primary,
                             borderRadius: BorderRadius.circular(2),
                           ),

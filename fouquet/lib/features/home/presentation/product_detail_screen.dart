@@ -1,6 +1,10 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:fouquet/core/style/colors.dart';
+import 'package:fouquet/core/style/theme.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   const ProductDetailScreen({super.key});
@@ -10,20 +14,11 @@ class ProductDetailScreen extends StatefulWidget {
 }
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
-  // ── Données reçues depuis HomeScreen via Get.arguments ─────
   late final Map<String, dynamic> product;
 
   int _qty = 1;
-  int _selectedSize = 1; // 0 = S, 1 = M, 2 = L
   bool _isFavorite = false;
 
-  final List<Map<String, dynamic>> _sizes = [
-    {'label': 'S', 'extra': 0},
-    {'label': 'M', 'extra': 500},
-    {'label': 'L', 'extra': 1000},
-  ];
-
-  // Ingrédients fictifs — à remplacer par les vraies données
   final List<Map<String, dynamic>> _ingredients = [
     {'icon': '🥩', 'label': 'Viande'},
     {'icon': '🧀', 'label': 'Fromage'},
@@ -32,30 +27,180 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     {'icon': '🧅', 'label': 'Oignon'},
   ];
 
-  int get _unitPrice =>
-      (product['price'] as int) + (_sizes[_selectedSize]['extra'] as int);
+  int get _unitPrice => product['price'] as int;
   int get _total => _unitPrice * _qty;
 
   @override
   void initState() {
     super.initState();
-    // Récupère les arguments passés depuis HomeScreen
     product = Get.arguments as Map<String, dynamic>;
+  }
+
+  // ── Share sheet ────────────────────────────────────────────
+  void _showShareSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 36),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.divider,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Partager via',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textDark,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _shareItemFa(
+                  faIcon: FontAwesomeIcons.whatsapp,
+                  label: 'WhatsApp',
+                  color: const Color(0xFF25D366),
+                  onTap: () => Get.back(),
+                ),
+                _shareItemFa(
+                  faIcon: FontAwesomeIcons.facebook,
+                  label: 'Facebook',
+                  color: const Color(0xFF1877F2),
+                  onTap: () => Get.back(),
+                ),
+                _shareItemFa(
+                  faIcon: FontAwesomeIcons.instagram,
+                  label: 'Instagram',
+                  color: const Color(0xFFE1306C),
+                  onTap: () => Get.back(),
+                ),
+                _shareItemFa(
+                  faIcon: FontAwesomeIcons.xTwitter,
+                  label: 'X',
+                  color: Colors.black,
+                  onTap: () => Get.back(),
+                ),
+                _shareItemCupertino(
+                  icon: CupertinoIcons.link,
+                  label: 'Copier',
+                  color: AppColors.primary,
+                  onTap: () {
+                    Get.back();
+                    Get.snackbar(
+                      'Lien copié',
+                      'Le lien a été copié dans le presse-papiers',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: AppColors.primary,
+                      colorText: Colors.white,
+                      borderRadius: 14,
+                      margin: const EdgeInsets.all(16),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Item share FontAwesome ─────────────────────────────────
+  Widget _shareItemFa({
+    required FaIconData faIcon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Center(child: FaIcon(faIcon, color: color, size: 26)),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              color: AppColors.textGray,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Item share Cupertino (Copier) ──────────────────────────
+  Widget _shareItemCupertino({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(icon, color: color, size: 26),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              color: AppColors.textGray,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bgLight,
+      backgroundColor: Colors.white,
+      extendBodyBehindAppBar: true,
       body: Stack(
         children: [
-          // ── Contenu scrollable ───────────────────────
           CustomScrollView(
             slivers: [
-              // ── Image Hero + AppBar flottante ────────
               _buildSliverAppBar(),
-
-              // ── Corps ────────────────────────────────
               SliverToBoxAdapter(
                 child: Container(
                   decoration: const BoxDecoration(
@@ -67,51 +212,37 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 20),
-
-                      // Nom + badge
                       _buildNameRow(),
                       const SizedBox(height: 12),
-
-                      // Note + temps de préparation
                       _buildMetaRow(),
                       const SizedBox(height: 20),
-
-                      // Description
                       _buildDescription(),
                       const SizedBox(height: 24),
-
-                      // Ingrédients
                       _buildIngredients(),
+                      const SizedBox(height: 16),
+                      _buildPriceRow(),
                       const SizedBox(height: 24),
-
-                      // Taille
-                      _buildSizeSelector(),
-                      const SizedBox(height: 24),
-
-                      // Quantité
                       _buildQtyRow(),
-                      const SizedBox(height: 120), // espace pour le bouton bas
+                      const SizedBox(height: 120),
                     ],
                   ),
                 ),
               ),
             ],
           ),
-
-          // ── Bouton "Ajouter au panier" fixe en bas ───
           Positioned(bottom: 0, left: 0, right: 0, child: _buildBottomBar()),
         ],
       ),
     );
   }
 
-  // ── SliverAppBar avec image Hero ───────────────────────────
   Widget _buildSliverAppBar() {
+    final screenHeight = MediaQuery.of(context).size.height;
     return SliverAppBar(
-      expandedHeight: 300,
+      expandedHeight: screenHeight * 0.5,
       pinned: true,
-      backgroundColor: AppColors.bgLight,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
       leading: GestureDetector(
         onTap: () => Get.back(),
         child: Container(
@@ -121,14 +252,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             shape: BoxShape.circle,
           ),
           child: const Icon(
-            Icons.arrow_back_ios_new_rounded,
+            CupertinoIcons.arrow_left,
             color: AppColors.textDark,
             size: 18,
           ),
         ),
       ),
       actions: [
-        // Bouton favori
         GestureDetector(
           onTap: () => setState(() => _isFavorite = !_isFavorite),
           child: Container(
@@ -139,15 +269,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               shape: BoxShape.circle,
             ),
             child: Icon(
-              _isFavorite
-                  ? Icons.favorite_rounded
-                  : Icons.favorite_border_rounded,
+              _isFavorite ? CupertinoIcons.heart_fill : CupertinoIcons.heart,
               color: _isFavorite ? AppColors.secondary : AppColors.textGray,
               size: 20,
             ),
           ),
         ),
-        // Bouton partage
         Container(
           margin: const EdgeInsets.only(right: 8, top: 8, bottom: 8),
           padding: const EdgeInsets.all(8),
@@ -155,10 +282,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             color: Colors.white.withOpacity(0.9),
             shape: BoxShape.circle,
           ),
-          child: const Icon(
-            Icons.share_outlined,
-            color: AppColors.textDark,
-            size: 20,
+          child: GestureDetector(
+            onTap: () => _showShareSheet(context),
+            child: const Icon(
+              CupertinoIcons.share,
+              color: AppColors.textDark,
+              size: 20,
+            ),
           ),
         ),
       ],
@@ -167,11 +297,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           tag: 'product-${product['name']}',
           child: Image.asset(
             product['image'],
-            fit: BoxFit.cover,
+            fit: BoxFit.contain,
             errorBuilder: (_, __, ___) => Container(
-              color: AppColors.bgLight,
+              color: Colors.white,
               child: const Icon(
-                Icons.restaurant,
+                CupertinoIcons.photo,
                 size: 80,
                 color: AppColors.textGray,
               ),
@@ -182,7 +312,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  // ── Nom + badge ────────────────────────────────────────────
   Widget _buildNameRow() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -192,8 +321,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           Expanded(
             child: Text(
               product['name'],
-              style: const TextStyle(
-                fontSize: 24,
+              style: GoogleFonts.nunito(
+                fontSize: 26,
                 fontWeight: FontWeight.w800,
                 color: AppColors.textDark,
               ),
@@ -220,14 +349,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  // ── Note + temps ───────────────────────────────────────────
   Widget _buildMetaRow() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         children: [
-          // Étoile
-          Icon(Icons.star_rounded, color: AppColors.star, size: 18),
+          Icon(CupertinoIcons.star_fill, color: AppColors.star, size: 18),
           const SizedBox(width: 4),
           const Text(
             '4.8',
@@ -242,22 +369,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             style: TextStyle(fontSize: 13, color: AppColors.textGray),
           ),
           const SizedBox(width: 20),
-
-          // Temps
-          Icon(Icons.access_time_rounded, color: AppColors.textGray, size: 16),
+          Icon(CupertinoIcons.clock, color: AppColors.textGray, size: 16),
           const SizedBox(width: 4),
           Text(
             '15–20 min',
             style: TextStyle(fontSize: 13, color: AppColors.textGray),
           ),
           const SizedBox(width: 20),
-
-          // Calories
-          Icon(
-            Icons.local_fire_department_outlined,
-            color: AppColors.accent,
-            size: 16,
-          ),
+          Icon(CupertinoIcons.flame, color: AppColors.accent, size: 16),
           const SizedBox(width: 4),
           Text(
             '320 kcal',
@@ -268,7 +387,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  // ── Description ────────────────────────────────────────────
   Widget _buildDescription() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -299,7 +417,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  // ── Ingrédients ────────────────────────────────────────────
   Widget _buildIngredients() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -355,75 +472,35 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  // ── Sélecteur de taille ────────────────────────────────────
-  Widget _buildSizeSelector() {
+  Widget _buildPriceRow() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          const Text(
-            'Taille',
-            style: TextStyle(
-              fontSize: 16,
+          Text(
+            '$_total F CFA',
+            style: const TextStyle(
+              fontSize: 22,
               fontWeight: FontWeight.w800,
-              color: AppColors.textDark,
+              color: AppColors.badgeOff,
             ),
           ),
-          const SizedBox(height: 12),
-          Row(
-            children: List.generate(_sizes.length, (i) {
-              final selected = _selectedSize == i;
-              final extra = _sizes[i]['extra'] as int;
-              return GestureDetector(
-                onTap: () => setState(() => _selectedSize = i),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  margin: const EdgeInsets.only(right: 12),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: selected ? AppColors.accent : AppColors.bgLight,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: selected ? AppColors.accent : AppColors.divider,
-                      width: 1.5,
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        _sizes[i]['label'],
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: selected ? Colors.white : AppColors.textDark,
-                        ),
-                      ),
-                      if (extra > 0)
-                        Text(
-                          '+$extra F',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: selected
-                                ? Colors.white70
-                                : AppColors.textGray,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              );
-            }),
-          ),
+          if (product['oldPrice'] != null) ...[
+            const SizedBox(width: 10),
+            Text(
+              '${product['oldPrice']} F',
+              style: TextStyle(
+                fontSize: 15,
+                color: AppColors.textGray,
+                decoration: TextDecoration.lineThrough,
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 
-  // ── Sélecteur de quantité ──────────────────────────────────
   Widget _buildQtyRow() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -438,9 +515,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ),
           ),
           const Spacer(),
-          // Bouton –
           _QtyBtn(
-            icon: Icons.remove,
+            icon: CupertinoIcons.minus,
             onTap: () {
               if (_qty > 1) setState(() => _qty--);
             },
@@ -457,9 +533,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
             ),
           ),
-          // Bouton +
           _QtyBtn(
-            icon: Icons.add,
+            icon: CupertinoIcons.plus,
             onTap: () => setState(() => _qty++),
             filled: true,
           ),
@@ -468,7 +543,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  // ── Barre bas "Ajouter au panier" ──────────────────────────
   Widget _buildBottomBar() {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
@@ -482,88 +556,55 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ),
         ],
       ),
-      child: Row(
-        children: [
-          // Prix total
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Prix total',
-                style: TextStyle(fontSize: 12, color: AppColors.textGray),
+      child: GestureDetector(
+        onTap: () {
+          Get.back();
+          Get.snackbar(
+            'Panier',
+            '${product['name']} ajouté au panier !',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: AppColors.accent,
+            colorText: Colors.white,
+            margin: const EdgeInsets.all(16),
+            borderRadius: 16,
+            duration: const Duration(seconds: 2),
+          );
+        },
+        child: Container(
+          width: double.infinity,
+          height: 54,
+          decoration: BoxDecoration(
+            color: AppColors.accent,
+            borderRadius: BorderRadius.circular(30),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.accent.withOpacity(0.4),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
+            ],
+          ),
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(CupertinoIcons.shopping_cart, color: Colors.white, size: 20),
+              SizedBox(width: 8),
               Text(
-                '$_total F CFA',
-                style: const TextStyle(
-                  fontSize: 20,
+                'Ajouter au panier',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.textDark,
                 ),
               ),
             ],
           ),
-          const SizedBox(width: 20),
-
-          // Bouton ajouter
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                // TODO: ajouter au CartController
-                Get.back();
-                Get.snackbar(
-                  'Panier',
-                  '${product['name']} ajouté au panier !',
-                  snackPosition: SnackPosition.BOTTOM,
-                  backgroundColor: AppColors.accent,
-                  colorText: Colors.white,
-                  margin: const EdgeInsets.all(16),
-                  borderRadius: 16,
-                  duration: const Duration(seconds: 2),
-                );
-              },
-              child: Container(
-                height: 54,
-                decoration: BoxDecoration(
-                  color: AppColors.accent,
-                  borderRadius: BorderRadius.circular(30),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.accent.withOpacity(0.4),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.shopping_bag_outlined,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                    SizedBox(width: 8),
-                    Text(
-                      'Ajouter au panier',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 }
 
-// ── Bouton quantité ───────────────────────────────────────────
 class _QtyBtn extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
