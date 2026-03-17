@@ -4,7 +4,6 @@ import 'package:fouquet/core/resources/app_images.dart';
 import 'package:fouquet/core/style/colors.dart';
 import 'package:fouquet/core/style/text_styles.dart';
 
-// ── Modèle d'une page onboarding ─────────────────────────────
 class _OnboardData {
   final String image;
   final String tag;
@@ -21,35 +20,33 @@ class _OnboardData {
   });
 }
 
-// ── Données des 3 slides ──────────────────────────────────────
 const List<_OnboardData> _pages = [
   _OnboardData(
-    image: AppImages.onboardAfricaine, // ☕ café latte
+    image: AppImages.onboardAfricaine,
     tag: 'Petit Déjeuner',
     title: 'Commencez la journée\ndu bon pied !',
     subtitle:
         'Omelettes, boissons chaudes et spéciaux\nFouquet préparés chaque matin pour vous.',
-    accentColor: Color(0xFFE8732A), // orange chaud
+    accentColor: Color(0xFFE8732A),
   ),
   _OnboardData(
-    image: AppImages.onboardEuropeenne, // 🍔 burger
+    image: AppImages.onboardEuropeenne,
     tag: 'Nos Plats',
     title: 'Burgers, Pizzas &\nShawarmas Savoureux',
     subtitle:
         'Une cuisine africaine, européenne et asiatique\npréparée avec passion à Calavi Zopah.',
-    accentColor: Color(0xFFE01A6A), // rose Fouquet
+    accentColor: Color(0xFFE01A6A),
   ),
   _OnboardData(
-    image: AppImages.onboardAsiatique, // 🌿 terrasse
+    image: AppImages.onboardAsiatique,
     tag: 'Notre Service',
     title: 'Une Expérience\nInoubliable',
     subtitle:
         'Profitez d\'un accueil chaleureux en salle,\nen terrasse ou commandez depuis chez vous.',
-    accentColor: Color(0xFF8DC63F), // vert Fouquet
+    accentColor: Color(0xFF8DC63F),
   ),
 ];
 
-// ── Écran Onboarding ──────────────────────────────────────────
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -114,10 +111,11 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // ── Images plein écran ────────────────────────
+          // ── Images plein écran défilables avec la main ✅ ──
           PageView.builder(
             controller: _pageController,
             itemCount: _pages.length,
+            physics: const BouncingScrollPhysics(), // ✅ défilement fluide
             onPageChanged: (i) {
               setState(() => _currentPage = i);
               _animCtrl
@@ -127,21 +125,21 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             itemBuilder: (_, i) => _PageImage(image: _pages[i].image),
           ),
 
-          // ── Gradient progressif bas ───────────────────
+          // ── Gradient bas ───────────────────────────────────
           const _BottomGradient(),
 
-          // ── Contenu ───────────────────────────────────
+          // ── Contenu ────────────────────────────────────────
+          // ✅ IgnorePointer sur le contenu texte pour ne pas bloquer le swipe
           SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── Barre haut : logo + passer ─────────
+                // Barre haut
                 Padding(
                   padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Logo blanc
                       Image.asset(
                         AppImages.splashLogo,
                         height: 36,
@@ -154,7 +152,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                           ),
                         ),
                       ),
-                      // Bouton passer
                       if (_currentPage < _pages.length - 1)
                         GestureDetector(
                           onTap: _goToHome,
@@ -187,7 +184,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
                 const Spacer(),
 
-                // ── Texte animé ────────────────────────
+                // Texte animé
                 FadeTransition(
                   opacity: _fadeAnim,
                   child: SlideTransition(
@@ -197,7 +194,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Tag catégorie
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 14,
@@ -218,12 +214,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                             ),
                           ),
                           const SizedBox(height: 14),
-
-                          // Titre
                           Text(page.title, style: AppTextStyles.splashTitle),
                           const SizedBox(height: 12),
-
-                          // Sous-titre
                           Text(
                             page.subtitle,
                             style: AppTextStyles.splashSubtitle,
@@ -261,7 +253,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   }
 }
 
-// ── Widget image de fond ──────────────────────────────────────
 class _PageImage extends StatelessWidget {
   final String image;
   const _PageImage({required this.image});
@@ -283,7 +274,6 @@ class _PageImage extends StatelessWidget {
   }
 }
 
-// ── Gradient sombre bas ───────────────────────────────────────
 class _BottomGradient extends StatelessWidget {
   const _BottomGradient();
 
@@ -302,7 +292,6 @@ class _BottomGradient extends StatelessWidget {
   }
 }
 
-// ── Indicateurs de page ───────────────────────────────────────
 class _Dots extends StatelessWidget {
   final int count;
   final int current;
@@ -333,7 +322,6 @@ class _Dots extends StatelessWidget {
   }
 }
 
-// ── Bouton Suivant / Commencer ────────────────────────────────
 class _NextButton extends StatelessWidget {
   final bool isLast;
   final Color color;

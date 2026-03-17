@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fouquet/core/navigation/app_routes.dart';
 import 'package:fouquet/core/style/colors.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -18,6 +19,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   bool _promoLoading = false;
   String? _promoError;
   bool _loading = false;
+
+  // ── Adresse ────────────────────────────────────────────────
+  String _ville = 'Cotonou';
+  String _quartier = 'Quartier Gbégamey';
 
   final List<Map<String, dynamic>> _items = const [
     {'name': 'Poulet grillé', 'qty': 2, 'price': 3500},
@@ -58,16 +63,296 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   void _confirm() async {
     setState(() => _loading = true);
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(const Duration(seconds: 2)); // simule le traitement
     setState(() => _loading = false);
-    Get.toNamed(
-      AppRoutes.payment,
-      arguments: {
-        'total': _total.toInt(),
-        'items': _items.length,
-        'deliveryMode': _deliveryMode == 0 ? 'Livraison' : 'À emporter',
-        'paymentMethod': _paymentMethod,
-      },
+    _showPaymentResultDialog(
+      success: true,
+    ); // ✅ boîte de dialogue au lieu de naviguer
+  }
+
+  // ── Boîte de résultat paiement ─────────────────────────────
+  void _showPaymentResultDialog({required bool success}) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.all(28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Icône animée
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: success
+                      ? Colors.green.withOpacity(0.1)
+                      : AppColors.secondary.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  success
+                      ? CupertinoIcons.checkmark_circle_fill
+                      : CupertinoIcons.xmark_circle_fill,
+                  color: success ? Colors.green : AppColors.secondary,
+                  size: 48,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Titre
+              Text(
+                success ? 'Paiement réussi !' : 'Paiement échoué',
+                style: GoogleFonts.nunito(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textDark,
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              // Message
+              Text(
+                success
+                    ? 'Votre commande a bien été confirmée. Vous serez livré dans les plus brefs délais.'
+                    : 'Une erreur est survenue. Veuillez réessayer ou choisir un autre moyen de paiement.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textGray,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 28),
+
+              // Bouton
+              GestureDetector(
+                onTap: () {
+                  Navigator.pop(context); // ferme le dialog
+                  if (success) {
+                    // ✅ retour à l'accueil après succès
+                    Navigator.of(
+                      context,
+                      rootNavigator: true,
+                    ).pushNamedAndRemoveUntil(AppRoutes.home, (r) => false);
+                  }
+                },
+                child: Container(
+                  width: double.infinity,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: success ? Colors.green : AppColors.secondary,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: (success ? Colors.green : AppColors.secondary)
+                            .withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Text(
+                      success ? 'Retour à l\'accueil' : 'Réessayer',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Bottom sheet adresse ───────────────────────────────────
+  void _showAddressSheet() {
+    final villeCtrl = TextEditingController(text: _ville);
+    final quartierCtrl = TextEditingController(text: _quartier);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 36),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Poignée
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.divider,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Adresse de livraison',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textDark,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Ville
+              Text(
+                'Ville',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textDark,
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: villeCtrl,
+                style: const TextStyle(fontSize: 14, color: AppColors.textDark),
+                decoration: InputDecoration(
+                  hintText: 'Ex : Cotonou',
+                  hintStyle: TextStyle(color: AppColors.textGray, fontSize: 14),
+                  prefixIcon: Icon(
+                    CupertinoIcons.building_2_fill,
+                    color: AppColors.primary,
+                    size: 18,
+                  ),
+                  filled: true,
+                  fillColor: AppColors.bgCard,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(
+                      color: AppColors.divider,
+                      width: 1.5,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: AppColors.primary, width: 2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Quartier
+              Text(
+                'Quartier',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textDark,
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: quartierCtrl,
+                style: const TextStyle(fontSize: 14, color: AppColors.textDark),
+                decoration: InputDecoration(
+                  hintText: 'Ex : Gbégamey',
+                  hintStyle: TextStyle(color: AppColors.textGray, fontSize: 14),
+                  prefixIcon: Icon(
+                    CupertinoIcons.location,
+                    color: AppColors.primary,
+                    size: 18,
+                  ),
+                  filled: true,
+                  fillColor: AppColors.bgCard,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(
+                      color: AppColors.divider,
+                      width: 1.5,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: AppColors.primary, width: 2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Bouton confirmer
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _ville = villeCtrl.text.trim().isNotEmpty
+                        ? villeCtrl.text.trim()
+                        : _ville;
+                    _quartier = quartierCtrl.text.trim().isNotEmpty
+                        ? quartierCtrl.text.trim()
+                        : _quartier;
+                  });
+                  Navigator.pop(context);
+                },
+                child: Container(
+                  width: double.infinity,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Center(
+                    child: Text(
+                      'Confirmer l\'adresse',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -89,12 +374,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             const SizedBox(height: 12),
             _buildDeliveryMode(),
             const SizedBox(height: 24),
+
+            // ✅ Adresse avant paiement
             if (_deliveryMode == 0) ...[
               _buildSectionTitle('Adresse de livraison'),
               const SizedBox(height: 12),
               _buildAddressTile(),
               const SizedBox(height: 24),
             ],
+
             _buildSectionTitle('Mode de paiement'),
             const SizedBox(height: 12),
             _buildPaymentMethods(),
@@ -129,12 +417,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           CupertinoIcons.arrow_left,
           color: AppColors.textDark,
           size: 18,
-        ), // ✅
+        ),
       ),
     ),
     title: Text(
       'Récapitulatif',
-      style: TextStyle(
+      style: GoogleFonts.nunito(
         fontSize: 18,
         fontWeight: FontWeight.w800,
         color: AppColors.textDark,
@@ -217,14 +505,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildDeliveryMode() => Row(
     children: [
-      _deliveryTile(
-        0,
-        CupertinoIcons.car_detailed,
-        'Livraison',
-        '+500 FCFA',
-      ), // ✅
+      _deliveryTile(0, CupertinoIcons.car_detailed, 'Livraison', '+500 FCFA'),
       const SizedBox(width: 12),
-      _deliveryTile(1, CupertinoIcons.bag, 'À emporter', 'Gratuit'), // ✅
+      _deliveryTile(1, CupertinoIcons.bag, 'À emporter', 'Gratuit'),
     ],
   );
 
@@ -277,56 +560,71 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _buildAddressTile() => GestureDetector(
-    onTap: () {},
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
+  // ✅ Adresse avec crayon qui ouvre le bottom sheet
+  Widget _buildAddressTile() => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    decoration: BoxDecoration(
+      color: AppColors.bgCard,
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: AppColors.divider),
+    ),
+    child: Row(
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            CupertinoIcons.location,
+            color: AppColors.primary,
+            size: 22,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _ville,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textDark,
+                ),
+              ),
+              Text(
+                _quartier,
+                style: TextStyle(fontSize: 12, color: AppColors.textGray),
+              ),
+            ],
+          ),
+        ),
+        // ✅ crayon ouvre le bottom sheet
+        GestureDetector(
+          onTap: _showAddressSheet,
+          child: Container(
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              color: AppColors.primary.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
-              CupertinoIcons.location,
+              CupertinoIcons.pencil,
               color: AppColors.primary,
-              size: 22,
-            ), // ✅
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Domicile',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textDark,
-                  ),
-                ),
-                Text(
-                  'Quartier Gbégamey, Cotonou',
-                  style: TextStyle(fontSize: 12, color: AppColors.textGray),
-                ),
-              ],
+              size: 18,
             ),
           ),
-          Icon(CupertinoIcons.pencil, color: AppColors.textGray, size: 18), // ✅
-        ],
-      ),
+        ),
+      ],
     ),
   );
 
+  // ✅ MTN, Moov, Celtiis uniquement
   Widget _buildPaymentMethods() {
     final methods = [
       {
@@ -342,17 +640,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         'color': const Color(0xFF0055A4),
       },
       {
-        'label': 'Carte bancaire',
-        'sub': 'Visa / Mastercard',
-        'icon': CupertinoIcons.creditcard,
-        'color': Colors.purple,
+        'label': 'Celtiis Cash',
+        'sub': 'Celtiis',
+        'icon': CupertinoIcons.device_phone_portrait,
+        'color': const Color(0xFF00A650),
       },
-      {
-        'label': 'Espèces',
-        'sub': 'À la livraison',
-        'icon': CupertinoIcons.money_dollar_circle,
-        'color': Colors.green,
-      }, // ✅ tout Cupertino
     ];
     return Container(
       decoration: BoxDecoration(
@@ -433,7 +725,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 color: Colors.white,
                                 size: 13,
                               )
-                            : null, // ✅
+                            : null,
                       ),
                     ],
                   ),
@@ -475,7 +767,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   CupertinoIcons.tag,
                   color: _promoApplied ? Colors.green : AppColors.primary,
                   size: 20,
-                ), // ✅
+                ),
                 filled: true,
                 fillColor: AppColors.bgCard,
                 contentPadding: const EdgeInsets.symmetric(
@@ -552,7 +844,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 CupertinoIcons.checkmark_circle,
                 color: Colors.green,
                 size: 16,
-              ), // ✅
+              ),
               const SizedBox(width: 6),
               Text(
                 'Code appliqué — 10% de réduction !',
@@ -574,7 +866,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 CupertinoIcons.exclamationmark_circle,
                 color: AppColors.secondary,
                 size: 16,
-              ), // ✅
+              ),
               const SizedBox(width: 6),
               Text(
                 _promoError!,
