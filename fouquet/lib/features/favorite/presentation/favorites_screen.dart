@@ -7,7 +7,8 @@ import 'package:fouquet/core/style/colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class FavoritesScreen extends StatefulWidget {
-  const FavoritesScreen({super.key});
+  final VoidCallback? onBack;
+  const FavoritesScreen({super.key, this.onBack});
 
   @override
   State<FavoritesScreen> createState() => _FavoritesScreenState();
@@ -47,6 +48,24 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
   void _removeFavorite(int i) => setState(() => _favorites.removeAt(i));
 
+  void _addToCart(String name) {
+    Get.snackbar(
+      'Ajouté au panier ✓',
+      '$name a été ajouté à votre panier avec succès.',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: AppColors.primary,
+      colorText: Colors.white,
+      borderRadius: 14,
+      margin: const EdgeInsets.all(16),
+      duration: const Duration(seconds: 2),
+      icon: const Icon(
+        CupertinoIcons.shopping_cart,
+        color: Colors.white,
+        size: 20,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -80,7 +99,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           Align(
             alignment: Alignment.centerLeft,
             child: GestureDetector(
-              onTap: () => Get.back(),
+              onTap: () =>
+                  widget.onBack != null ? widget.onBack!() : Get.back(),
               child: Container(
                 width: 44,
                 height: 44,
@@ -99,7 +119,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   CupertinoIcons.arrow_left,
                   color: AppColors.textDark,
                   size: 18,
-                ), // ✅
+                ),
               ),
             ),
           ),
@@ -144,7 +164,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           CupertinoIcons.heart_slash,
           color: Colors.white,
           size: 26,
-        ), // ✅
+        ),
       ),
       child: GestureDetector(
         onTap: () => Get.toNamed(AppRoutes.productDetail, arguments: item),
@@ -162,6 +182,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             ],
           ),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(14),
@@ -178,7 +199,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       CupertinoIcons.photo,
                       color: AppColors.textGray,
                       size: 30,
-                    ), // ✅
+                    ),
                   ),
                 ),
               ),
@@ -187,13 +208,31 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      item['name'],
-                      style: GoogleFonts.greatVibes(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textDark,
-                      ),
+                    // ✅ nom + cœur sur la même ligne, cœur à droite
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            item['name'],
+                            style: GoogleFonts.nunito(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textDark,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () => _removeFavorite(i),
+                          child: Icon(
+                            CupertinoIcons.heart_fill,
+                            color: AppColors.secondary,
+                            size: 20,
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -220,7 +259,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                               CupertinoIcons.star_fill,
                               color: AppColors.star,
                               size: 16,
-                            ), // ✅
+                            ),
                             const SizedBox(width: 3),
                             Text(
                               '${item['rating']}',
@@ -232,7 +271,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                             ),
                             const SizedBox(width: 10),
                             GestureDetector(
-                              onTap: () {},
+                              onTap: () => _addToCart(item['name']),
                               child: Container(
                                 width: 32,
                                 height: 32,
@@ -244,7 +283,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                                   CupertinoIcons.shopping_cart,
                                   color: Colors.white,
                                   size: 16,
-                                ), // ✅
+                                ),
                               ),
                             ),
                           ],
@@ -252,17 +291,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       ],
                     ),
                   ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 8),
-                child: GestureDetector(
-                  onTap: () => _removeFavorite(i),
-                  child: Icon(
-                    CupertinoIcons.heart_fill,
-                    color: AppColors.secondary,
-                    size: 22,
-                  ), // ✅
                 ),
               ),
             ],
@@ -288,7 +316,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               CupertinoIcons.heart,
               size: 56,
               color: AppColors.secondary,
-            ), // ✅
+            ),
           ),
           const SizedBox(height: 24),
           const Text(
@@ -306,7 +334,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           ),
           const SizedBox(height: 32),
           GestureDetector(
-            onTap: () => Get.back(),
+            onTap: () => widget.onBack != null ? widget.onBack!() : Get.back(),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
               decoration: BoxDecoration(

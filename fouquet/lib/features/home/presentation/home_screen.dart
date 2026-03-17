@@ -121,7 +121,7 @@ class _HomeScreenState extends State<HomeScreen> {
           _buildHomeBody(),
           // ✅ onBack ramène sur l'onglet Home
           CartScreen(onBack: () => setState(() => _selectedNav = 0)),
-          const FavoritesScreen(),
+          FavoritesScreen(onBack: () => setState(() => _selectedNav = 0)),
           const ProfileScreen(),
         ],
       ),
