@@ -1,39 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:fouquet/features/auth/controllers/login_controller.dart';
 import 'package:get/get.dart';
 import 'package:fouquet/core/navigation/app_routes.dart';
-import 'package:fouquet/core/resources/app_images.dart';
 import 'package:fouquet/core/style/colors.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class LoginScreen extends StatelessWidget {
+  LoginScreen({super.key});
 
-  @override
-  State<LoginScreen> createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends State<LoginScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _emailCtrl = TextEditingController();
-  final _passCtrl = TextEditingController();
-
-  bool _obscure = true;
-  bool _loading = false;
-  bool _remember = false;
-
-  @override
-  void dispose() {
-    _emailCtrl.dispose();
-    _passCtrl.dispose();
-    super.dispose();
-  }
-
-  void _login() async {
-    if (!_formKey.currentState!.validate()) return;
-    setState(() => _loading = true);
-    await Future.delayed(const Duration(seconds: 2));
-    setState(() => _loading = false);
-    Get.offAllNamed(AppRoutes.home);
-  }
+  // ✅ Controller initialisé une seule fois ici
+  final LoginController controller = Get.find();
 
   @override
   Widget build(BuildContext context) {
@@ -44,24 +19,24 @@ class _LoginScreenState extends State<LoginScreen> {
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
             child: Form(
-              key: _formKey,
+              key: controller.formKey,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center, // ✅ corrigé
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   _buildHeader(),
                   const SizedBox(height: 40),
                   _buildLabel('Email'),
                   const SizedBox(height: 8),
-                  _buildEmailField(),
+                  _buildEmailField(controller),
                   const SizedBox(height: 20),
                   _buildLabel('Mot de passe'),
                   const SizedBox(height: 8),
-                  _buildPasswordField(),
+                  _buildPasswordField(controller),
                   const SizedBox(height: 14),
-                  _buildRememberRow(),
+                  _buildRememberRow(controller),
                   const SizedBox(height: 36),
-                  _buildLoginBtn(),
+                  _buildLoginBtn(controller),
                   const SizedBox(height: 28),
                   _buildDivider(),
                   const SizedBox(height: 28),
@@ -77,7 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildHeader() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.center, // ✅ corrigé
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(18),
@@ -91,7 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
         const SizedBox(height: 24),
         Text(
           'Bon retour 👋',
-          textAlign: TextAlign.center, // ✅ ajouté
+          textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 26,
             fontWeight: FontWeight.w800,
@@ -102,7 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
         const SizedBox(height: 6),
         Text(
           'Connectez-vous à votre compte pour continuer.',
-          textAlign: TextAlign.center, // ✅ ajouté
+          textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 14,
             color: AppColors.textGray,
@@ -128,16 +103,12 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildEmailField() {
+  Widget _buildEmailField(LoginController controller) {
     return TextFormField(
-      controller: _emailCtrl,
+      controller: controller.emailController,
       keyboardType: TextInputType.emailAddress,
       style: const TextStyle(fontSize: 14, color: AppColors.textDark),
-      validator: (v) {
-        if (v == null || v.isEmpty) return 'Email requis';
-        if (!v.contains('@')) return 'Email invalide';
-        return null;
-      },
+      validator: controller.validateEmail,
       decoration: _inputDeco(
         hint: 'exemple@email.com',
         icon: Icons.email_outlined,
@@ -145,121 +116,129 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildPasswordField() {
-    return TextFormField(
-      controller: _passCtrl,
-      obscureText: _obscure,
-      style: const TextStyle(fontSize: 14, color: AppColors.textDark),
-      validator: (v) {
-        if (v == null || v.isEmpty) return 'Mot de passe requis';
-        if (v.length < 6) return 'Minimum 6 caractères';
-        return null;
-      },
-      decoration: _inputDeco(
-        hint: '••••••••',
-        icon: Icons.lock_outline_rounded,
-        suffix: GestureDetector(
-          onTap: () => setState(() => _obscure = !_obscure),
-          child: Icon(
-            _obscure
-                ? Icons.visibility_off_outlined
-                : Icons.visibility_outlined,
-            color: AppColors.textGray,
-            size: 20,
+  Widget _buildPasswordField(LoginController controller) {
+    return Obx(
+      () => TextFormField(
+        controller: controller.passwordController,
+        obscureText: controller.isPasswordHidden.value,
+        style: const TextStyle(fontSize: 14, color: AppColors.textDark),
+        validator: controller.validatePassword,
+        decoration: _inputDeco(
+          hint: '••••••••',
+          icon: Icons.lock_outline_rounded,
+          suffix: GestureDetector(
+            onTap: controller.togglePassword,
+            child: Icon(
+              controller.isPasswordHidden.value
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
+              color: AppColors.textGray,
+              size: 20,
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildRememberRow() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        GestureDetector(
-          onTap: () => setState(() => _remember = !_remember),
-          child: Row(
-            children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: 20,
-                height: 20,
-                decoration: BoxDecoration(
-                  color: _remember ? AppColors.primary : Colors.transparent,
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: _remember ? AppColors.primary : AppColors.divider,
-                    width: 1.5,
+  Widget _buildRememberRow(LoginController controller) {
+    return Obx(
+      () => Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          GestureDetector(
+            onTap: controller.toggleRememberMe,
+            child: Row(
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 20,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    color: controller.rememberMe.value
+                        ? AppColors.primary
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: controller.rememberMe.value
+                          ? AppColors.primary
+                          : AppColors.divider,
+                      width: 1.5,
+                    ),
                   ),
+                  child: controller.rememberMe.value
+                      ? const Icon(Icons.check, color: Colors.white, size: 13)
+                      : null,
                 ),
-                child: _remember
-                    ? const Icon(Icons.check, color: Colors.white, size: 13)
-                    : null,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Se souvenir de moi',
-                style: TextStyle(fontSize: 13, color: AppColors.textMedium),
-              ),
-            ],
-          ),
-        ),
-        GestureDetector(
-          onTap: () {},
-          child: Text(
-            'Mot de passe oublié ?',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: AppColors.primary,
+                const SizedBox(width: 8),
+                Text(
+                  'Se souvenir de moi',
+                  style: TextStyle(fontSize: 13, color: AppColors.textMedium),
+                ),
+              ],
             ),
           ),
-        ),
-      ],
+          // ✅ Navigue vers forgotPassword
+          GestureDetector(
+            onTap: controller.goToForgotPassword,
+            child: Text(
+              'Mot de passe oublié ?',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primary,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildLoginBtn() {
-    return GestureDetector(
-      onTap: _loading ? null : _login,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: double.infinity,
-        height: 56,
-        decoration: BoxDecoration(
-          color: _loading
-              ? AppColors.primary.withOpacity(0.6)
-              : AppColors.primary,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: _loading
-              ? []
-              : [
-                  BoxShadow(
-                    color: AppColors.primary.withOpacity(0.30),
-                    blurRadius: 18,
-                    offset: const Offset(0, 6),
+  // ✅ Bouton connecté à controller.login()
+  Widget _buildLoginBtn(LoginController controller) {
+    return Obx(
+      () => GestureDetector(
+        onTap: controller.isLoading.value ? null : controller.login,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: double.infinity,
+          height: 56,
+          decoration: BoxDecoration(
+            color: controller.isLoading.value
+                ? AppColors.primary.withOpacity(0.6)
+                : AppColors.primary,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: controller.isLoading.value
+                ? []
+                : [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.30),
+                      blurRadius: 18,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+          ),
+          child: Center(
+            child: controller.isLoading.value
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2.5,
+                    ),
+                  )
+                : const Text(
+                    'Se connecter',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.3,
+                    ),
                   ),
-                ],
-        ),
-        child: Center(
-          child: _loading
-              ? const SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 2.5,
-                  ),
-                )
-              : const Text(
-                  'Se connecter',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.3,
-                  ),
-                ),
+          ),
         ),
       ),
     );
@@ -282,27 +261,23 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildRegisterLink() {
-    return Center(
-      child: GestureDetector(
-        onTap: () => Get.toNamed(AppRoutes.register),
-        child: Container(
-          width: double.infinity,
-          height: 54,
-          decoration: BoxDecoration(
-            color: Colors.transparent,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.divider, width: 1.5),
-          ),
-          child: Center(
-            child: RichText(
-              text: TextSpan(
-                text: "Créer un compte ",
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.primary,
-                ),
-              ),
+    return GestureDetector(
+      onTap: () => Get.toNamed(AppRoutes.register),
+      child: Container(
+        width: double.infinity,
+        height: 54,
+        decoration: BoxDecoration(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.divider, width: 1.5),
+        ),
+        child: Center(
+          child: Text(
+            'Créer un compte',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+              color: AppColors.primary,
             ),
           ),
         ),

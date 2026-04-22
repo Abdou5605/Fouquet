@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:fouquet/core/navigation/app_routes.dart';
 import 'package:fouquet/core/resources/app_images.dart';
 import 'package:fouquet/core/style/colors.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AllProductsScreen extends StatefulWidget {
   const AllProductsScreen({super.key});
@@ -18,24 +18,43 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
   String _query = '';
   int _selectedCategory = 0;
 
+  // ── Helper Nunito ──────────────────────────────────────────────────────────
+  static TextStyle _nunito({
+    double size = 14,
+    FontWeight weight = FontWeight.w400,
+    Color? color,
+    double height = 1.0,
+    double letterSpacing = 0.0,
+    TextDecoration? decoration,
+  }) => GoogleFonts.nunito(
+    fontSize: size,
+    fontWeight: weight,
+    color: color,
+    height: height,
+    letterSpacing: letterSpacing,
+    decoration: decoration,
+  );
+
   final List<String> _categories = [
     'Tous',
     'Fast Food',
     'Plats Africains',
+    'Plats Européens',
     'Boissons',
-    'Salades',
+    'Déjeuners',
     'Cocktails',
     'Desserts',
     'Cremeries',
   ];
 
-  // Icônes associées à chaque catégorie
+  // ✅ 9 icônes — une par catégorie
   final List<IconData> _catIcons = [
     CupertinoIcons.square_grid_2x2,
     CupertinoIcons.flame,
     CupertinoIcons.leaf_arrow_circlepath,
     CupertinoIcons.drop,
     CupertinoIcons.tree,
+    CupertinoIcons.sun_max,
     CupertinoIcons.sparkles,
     CupertinoIcons.star,
     CupertinoIcons.snow,
@@ -202,7 +221,7 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
     );
   }
 
-  // ── AppBar ─────────────────────────────────────────────────
+  // ── AppBar ────────────────────────────────────────────────────────────────
   Widget _buildAppBar() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
@@ -238,17 +257,17 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
+              Text(
                 'Notre Menu',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
+                style: _nunito(
+                  size: 20,
+                  weight: FontWeight.w800,
                   color: AppColors.textDark,
                 ),
               ),
               Text(
                 '${_products.length} plats disponibles',
-                style: TextStyle(fontSize: 13, color: AppColors.textGray),
+                style: _nunito(size: 13, color: AppColors.textGray),
               ),
             ],
           ),
@@ -257,17 +276,17 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
     );
   }
 
-  // ── Barre de recherche ─────────────────────────────────────
+  // ── Barre de recherche ────────────────────────────────────────────────────
   Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: TextField(
         controller: _searchCtrl,
         onChanged: (v) => setState(() => _query = v),
-        style: const TextStyle(fontSize: 14, color: AppColors.textDark),
+        style: _nunito(size: 14, color: AppColors.textDark),
         decoration: InputDecoration(
           hintText: 'Rechercher un plat…',
-          hintStyle: TextStyle(color: AppColors.textGray, fontSize: 14),
+          hintStyle: _nunito(size: 14, color: AppColors.textGray),
           prefixIcon: Icon(
             CupertinoIcons.search,
             color: AppColors.primary,
@@ -309,7 +328,7 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
     );
   }
 
-  // ── Chips catégories avec icônes ───────────────────────────
+  // ── Chips catégories ──────────────────────────────────────────────────────
   Widget _buildCategoryChips() {
     return SizedBox(
       height: 72,
@@ -354,9 +373,9 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
                   Text(
                     _categories[i],
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
+                    style: _nunito(
+                      size: 10,
+                      weight: FontWeight.w600,
                       color: selected ? Colors.white : AppColors.textMedium,
                     ),
                     maxLines: 1,
@@ -371,7 +390,7 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
     );
   }
 
-  // ── Compteur de résultats ──────────────────────────────────
+  // ── Compteur résultats ────────────────────────────────────────────────────
   Widget _buildResultCount() {
     final count = _filtered.length;
     final cat = _categories[_selectedCategory];
@@ -381,36 +400,33 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
         children: [
           Text(
             '$count plat${count > 1 ? 's' : ''}${cat != 'Tous' ? ' · $cat' : ''}',
-            style: TextStyle(
-              fontSize: 13,
+            style: _nunito(
+              size: 13,
+              weight: FontWeight.w600,
               color: AppColors.textGray,
-              fontWeight: FontWeight.w600,
             ),
           ),
           if (_query.isNotEmpty) ...[
             Text(
               ' pour "',
-              style: TextStyle(fontSize: 13, color: AppColors.textGray),
+              style: _nunito(size: 13, color: AppColors.textGray),
             ),
             Text(
               _query,
-              style: TextStyle(
-                fontSize: 13,
+              style: _nunito(
+                size: 13,
+                weight: FontWeight.w700,
                 color: AppColors.primary,
-                fontWeight: FontWeight.w700,
               ),
             ),
-            Text(
-              '"',
-              style: TextStyle(fontSize: 13, color: AppColors.textGray),
-            ),
+            Text('"', style: _nunito(size: 13, color: AppColors.textGray)),
           ],
         ],
       ),
     );
   }
 
-  // ── Grille de produits ─────────────────────────────────────
+  // ── Grille produits ───────────────────────────────────────────────────────
   Widget _buildGrid() {
     return GridView.builder(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 30),
@@ -425,7 +441,7 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
     );
   }
 
-  // ── Carte produit ──────────────────────────────────────────
+  // ── Carte produit ─────────────────────────────────────────────────────────
   Widget _buildProductCard(Map<String, dynamic> product) {
     return GestureDetector(
       onTap: () => Get.toNamed(AppRoutes.productDetail, arguments: product),
@@ -481,16 +497,15 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
                         child: Text(
                           product['badge'],
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
+                          style: _nunito(
+                            size: 9,
+                            weight: FontWeight.w800,
                             color: Colors.white,
-                            fontSize: 9,
-                            fontWeight: FontWeight.w800,
                             height: 1.2,
                           ),
                         ),
                       ),
                     ),
-                  // Note étoile
                   Positioned(
                     top: 8,
                     right: 8,
@@ -514,10 +529,10 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
                           const SizedBox(width: 3),
                           Text(
                             '${product['rating']}',
-                            style: const TextStyle(
+                            style: _nunito(
+                              size: 10,
+                              weight: FontWeight.w700,
                               color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ],
@@ -534,9 +549,9 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
                 children: [
                   Text(
                     product['name'],
-                    style: GoogleFonts.nunito(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
+                    style: _nunito(
+                      size: 13,
+                      weight: FontWeight.w800,
                       color: AppColors.textDark,
                     ),
                     maxLines: 1,
@@ -545,7 +560,7 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
                   const SizedBox(height: 2),
                   Text(
                     product['category'],
-                    style: TextStyle(fontSize: 11, color: AppColors.textGray),
+                    style: _nunito(size: 11, color: AppColors.textGray),
                   ),
                   const SizedBox(height: 6),
                   Row(
@@ -556,17 +571,17 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
                         children: [
                           Text(
                             '${product['price']} F',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w800,
+                            style: _nunito(
+                              size: 14,
+                              weight: FontWeight.w800,
                               color: AppColors.badgeOff,
                             ),
                           ),
                           if (product['oldPrice'] != null)
                             Text(
                               '${product['oldPrice']} F',
-                              style: TextStyle(
-                                fontSize: 11,
+                              style: _nunito(
+                                size: 11,
                                 color: AppColors.textGray,
                                 decoration: TextDecoration.lineThrough,
                               ),
@@ -597,7 +612,7 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
     );
   }
 
-  // ── État vide ──────────────────────────────────────────────
+  // ── État vide ─────────────────────────────────────────────────────────────
   Widget _buildEmpty() {
     return Center(
       child: Column(
@@ -609,7 +624,7 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
             _query.isNotEmpty
                 ? 'Aucun résultat pour "$_query"'
                 : 'Aucun plat dans cette catégorie',
-            style: TextStyle(fontSize: 14, color: AppColors.textGray),
+            style: _nunito(size: 14, color: AppColors.textGray),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
@@ -621,9 +636,9 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
             }),
             child: Text(
               'Voir tous les plats',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
+              style: _nunito(
+                size: 13,
+                weight: FontWeight.w700,
                 color: AppColors.primary,
               ),
             ),

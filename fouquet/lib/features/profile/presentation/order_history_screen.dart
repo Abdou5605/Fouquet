@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:fouquet/core/resources/app_images.dart';
 import 'package:fouquet/core/style/colors.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class OrderHistoryScreen extends StatefulWidget {
   const OrderHistoryScreen({super.key});
@@ -17,6 +17,21 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
   late TabController _tabCtrl;
 
   final _tabs = ['Tous', 'En cours', 'Livré', 'Annulé'];
+
+  // ── Helper Nunito ──────────────────────────────────────────────────────────
+  static TextStyle _nunito({
+    double size = 14,
+    FontWeight weight = FontWeight.w400,
+    Color? color,
+    double height = 1.0,
+    double letterSpacing = 0.0,
+  }) => GoogleFonts.nunito(
+    fontSize: size,
+    fontWeight: weight,
+    color: color,
+    height: height,
+    letterSpacing: letterSpacing,
+  );
 
   final List<Map<String, dynamic>> _orders = [
     {
@@ -107,6 +122,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
     );
   }
 
+  // ── AppBar ────────────────────────────────────────────────────────────────
   Widget _buildAppBar() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
@@ -132,17 +148,17 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
                 CupertinoIcons.arrow_left,
                 color: AppColors.textDark,
                 size: 18,
-              ), // ✅
+              ),
             ),
           ),
           const SizedBox(width: 16),
-          const Expanded(
+          Expanded(
             child: Text(
               'Mes commandes',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
+              style: _nunito(
+                size: 20,
+                weight: FontWeight.w800,
                 color: AppColors.textDark,
               ),
             ),
@@ -150,15 +166,15 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.accent.withOpacity(0.1),
+              color: AppColors.secondary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
               '${_orders.length} commandes',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: AppColors.accent,
+              style: _nunito(
+                size: 12,
+                weight: FontWeight.w700,
+                color: AppColors.secondary,
               ),
             ),
           ),
@@ -167,6 +183,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
     );
   }
 
+  // ── Tabs ──────────────────────────────────────────────────────────────────
   Widget _buildTabs() {
     return SizedBox(
       height: 38,
@@ -196,9 +213,9 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
               ),
               child: Text(
                 _tabs[i],
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+                style: _nunito(
+                  size: 13,
+                  weight: FontWeight.w600,
                   color: selected ? Colors.white : AppColors.textMedium,
                 ),
               ),
@@ -209,6 +226,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
     );
   }
 
+  // ── Carte commande ────────────────────────────────────────────────────────
   Widget _buildOrderCard(Map<String, dynamic> order) {
     final status = order['status'] as String;
     final statusColor = _statusColor(status);
@@ -244,7 +262,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
                     child: const Icon(
                       CupertinoIcons.photo,
                       color: AppColors.textGray,
-                    ), // ✅
+                    ),
                   ),
                 ),
               ),
@@ -258,9 +276,9 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
                       children: [
                         Text(
                           order['id'],
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
+                          style: _nunito(
+                            size: 14,
+                            weight: FontWeight.w800,
                             color: AppColors.textDark,
                           ),
                         ),
@@ -270,15 +288,12 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
                     const SizedBox(height: 4),
                     Text(
                       order['date'],
-                      style: TextStyle(fontSize: 12, color: AppColors.textGray),
+                      style: _nunito(size: 12, color: AppColors.textGray),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       (order['items'] as List).join(' · '),
-                      style: GoogleFonts.greatVibes(
-                        fontSize: 12,
-                        color: AppColors.textMedium,
-                      ),
+                      style: _nunito(size: 12, color: AppColors.textMedium),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -298,13 +313,13 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
                 children: [
                   Text(
                     'Total',
-                    style: TextStyle(fontSize: 12, color: AppColors.textGray),
+                    style: _nunito(size: 12, color: AppColors.textGray),
                   ),
                   Text(
                     '${order['total']} F CFA',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
+                    style: _nunito(
+                      size: 16,
+                      weight: FontWeight.w800,
                       color: AppColors.badgeOff,
                     ),
                   ),
@@ -315,19 +330,19 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
                   if (status == 'Livré')
                     _actionBtn(
                       label: 'Reorder',
-                      color: AppColors.accent,
+                      color: AppColors.textGray,
                       onTap: () {},
                     ),
                   if (status == 'En cours') ...[
                     _actionBtn(
                       label: 'Suivre',
-                      color: AppColors.accent,
+                      color: AppColors.primary,
                       onTap: () {},
                     ),
                     const SizedBox(width: 8),
                     _actionBtn(
                       label: 'Annuler',
-                      color: AppColors.badgeOff,
+                      color: AppColors.secondary,
                       onTap: () {},
                     ),
                   ],
@@ -346,6 +361,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
     );
   }
 
+  // ── Badge statut ──────────────────────────────────────────────────────────
   Widget _buildStatusBadge(String status, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -364,17 +380,14 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
           const SizedBox(width: 5),
           Text(
             status,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
+            style: _nunito(size: 11, weight: FontWeight.w700, color: color),
           ),
         ],
       ),
     );
   }
 
+  // ── Bouton action ─────────────────────────────────────────────────────────
   Widget _actionBtn({
     required String label,
     required Color color,
@@ -391,11 +404,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
         ),
         child: Text(
           label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            color: color,
-          ),
+          style: _nunito(size: 12, weight: FontWeight.w700, color: color),
         ),
       ),
     );
@@ -406,7 +415,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
       case 'Livré':
         return const Color(0xFF22C55E);
       case 'En cours':
-        return AppColors.accent;
+        return Colors.blueAccent;
       case 'Annulé':
         return AppColors.secondary;
       default:
@@ -414,6 +423,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
     }
   }
 
+  // ── État vide ─────────────────────────────────────────────────────────────
   Widget _buildEmpty() {
     return Center(
       child: Column(
@@ -430,21 +440,21 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
               CupertinoIcons.doc_text,
               size: 52,
               color: AppColors.accent,
-            ), // ✅
+            ),
           ),
           const SizedBox(height: 20),
-          const Text(
+          Text(
             'Aucune commande',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
+            style: _nunito(
+              size: 20,
+              weight: FontWeight.w800,
               color: AppColors.textDark,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Vos commandes apparaîtront ici',
-            style: TextStyle(fontSize: 14, color: AppColors.textGray),
+            style: _nunito(size: 14, color: AppColors.textGray),
           ),
         ],
       ),

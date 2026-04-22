@@ -1,9 +1,7 @@
-// ═══════════════════════════════════════════════════
-// HELP CENTER SCREEN
-// ═══════════════════════════════════════════════════
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:fouquet/core/style/colors.dart';
 
 class HelpCenterScreen extends StatefulWidget {
@@ -16,6 +14,19 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
   final _searchCtrl = TextEditingController();
   String _query = '';
   int? _expandedIndex;
+
+  // ── Helper Nunito ──────────────────────────────────────────────────────────
+  static TextStyle _nunito({
+    double size = 14,
+    FontWeight weight = FontWeight.w400,
+    Color? color,
+    double height = 1.0,
+  }) => GoogleFonts.nunito(
+    fontSize: size,
+    fontWeight: weight,
+    color: color,
+    height: height,
+  );
 
   final List<Map<String, String>> _faqs = const [
     {
@@ -110,6 +121,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
     );
   }
 
+  // ── AppBar ────────────────────────────────────────────────────────────────
   PreferredSizeWidget _buildAppBar() => AppBar(
     backgroundColor: AppColors.bgLight,
     elevation: 0,
@@ -126,20 +138,21 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
           CupertinoIcons.arrow_left,
           color: AppColors.textDark,
           size: 18,
-        ), // ✅
+        ),
       ),
     ),
     title: Text(
       'Centre d\'aide',
-      style: TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.w800,
+      style: _nunito(
+        size: 18,
+        weight: FontWeight.w800,
         color: AppColors.textDark,
       ),
     ),
     centerTitle: true,
   );
 
+  // ── Barre de recherche ────────────────────────────────────────────────────
   Widget _buildSearchBar() => Container(
     color: AppColors.bgLight,
     padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -149,15 +162,15 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
         _query = v;
         _expandedIndex = null;
       }),
-      style: const TextStyle(fontSize: 14, color: AppColors.textDark),
+      style: _nunito(size: 14, color: AppColors.textDark),
       decoration: InputDecoration(
         hintText: 'Rechercher une question…',
-        hintStyle: TextStyle(color: AppColors.textGray, fontSize: 14),
+        hintStyle: _nunito(size: 14, color: AppColors.textGray),
         prefixIcon: Icon(
           CupertinoIcons.search,
           color: AppColors.primary,
           size: 22,
-        ), // ✅
+        ),
         suffixIcon: _query.isNotEmpty
             ? GestureDetector(
                 onTap: () => setState(() {
@@ -168,7 +181,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                   CupertinoIcons.xmark,
                   color: AppColors.textGray,
                   size: 20,
-                ), // ✅
+                ),
               )
             : null,
         filled: true,
@@ -193,13 +206,14 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
     ),
   );
 
+  // ── Catégories ────────────────────────────────────────────────────────────
   Widget _buildCategoryRow() {
     final cats = [
       {'icon': CupertinoIcons.bag, 'label': 'Commandes'},
       {'icon': CupertinoIcons.creditcard, 'label': 'Paiement'},
       {'icon': CupertinoIcons.car_detailed, 'label': 'Livraison'},
       {'icon': CupertinoIcons.person_circle, 'label': 'Compte'},
-    ]; // ✅ tout Cupertino
+    ];
     return Row(
       children: cats
           .map(
@@ -224,9 +238,9 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                     const SizedBox(height: 6),
                     Text(
                       c['label'] as String,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
+                      style: _nunito(
+                        size: 11,
+                        weight: FontWeight.w600,
                         color: AppColors.textMedium,
                       ),
                     ),
@@ -239,15 +253,17 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
     );
   }
 
+  // ── Titre de section ──────────────────────────────────────────────────────
   Widget _buildSectionTitle(String t) => Text(
     t,
-    style: const TextStyle(
-      fontSize: 15,
-      fontWeight: FontWeight.w800,
+    style: _nunito(
+      size: 15,
+      weight: FontWeight.w800,
       color: AppColors.textDark,
     ),
   );
 
+  // ── Item FAQ ──────────────────────────────────────────────────────────────
   Widget _buildFaqItem(int i, Map<String, String> faq) {
     final isOpen = _expandedIndex == i;
     return GestureDetector(
@@ -272,9 +288,9 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                   Expanded(
                     child: Text(
                       faq['q']!,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
+                      style: _nunito(
+                        size: 14,
+                        weight: FontWeight.w700,
                         color: isOpen ? AppColors.primary : AppColors.textDark,
                       ),
                     ),
@@ -286,7 +302,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                       CupertinoIcons.chevron_down,
                       color: isOpen ? AppColors.primary : AppColors.textGray,
                       size: 18,
-                    ), // ✅
+                    ),
                   ),
                 ],
               ),
@@ -296,8 +312,8 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 child: Text(
                   faq['a']!,
-                  style: TextStyle(
-                    fontSize: 13,
+                  style: _nunito(
+                    size: 13,
                     color: AppColors.textGray,
                     height: 1.6,
                   ),
@@ -309,16 +325,17 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
     );
   }
 
+  // ── État vide ─────────────────────────────────────────────────────────────
   Widget _buildEmpty() => Center(
     child: Padding(
       padding: const EdgeInsets.only(top: 40),
       child: Column(
         children: [
-          Icon(CupertinoIcons.search, size: 48, color: AppColors.textGray), // ✅
+          Icon(CupertinoIcons.search, size: 48, color: AppColors.textGray),
           const SizedBox(height: 12),
           Text(
             'Aucun résultat pour "$_query"',
-            style: TextStyle(fontSize: 14, color: AppColors.textGray),
+            style: _nunito(size: 14, color: AppColors.textGray),
           ),
         ],
       ),

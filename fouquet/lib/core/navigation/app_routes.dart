@@ -18,6 +18,7 @@ abstract class AppRoutes {
   static const String verifyEmail = '/verfyEmail';
   static const String resetPassword = '/reset-password';
   static const String changePassword = '/change-password';
+  static const String forgotPassword = '/forgot-password';
   static const String bookSpace = '/book-space';
   static const referral = '/referral';
   static const helpCenter = '/help-center';

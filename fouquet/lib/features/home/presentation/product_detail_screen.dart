@@ -563,7 +563,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             'Panier',
             '${product['name']} ajouté au panier !',
             snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: AppColors.accent,
+            backgroundColor: AppColors.primary,
             colorText: Colors.white,
             margin: const EdgeInsets.all(16),
             borderRadius: 16,
@@ -574,11 +574,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           width: double.infinity,
           height: 54,
           decoration: BoxDecoration(
-            color: AppColors.accent,
+            color: AppColors.primary,
             borderRadius: BorderRadius.circular(30),
             boxShadow: [
               BoxShadow(
-                color: AppColors.accent.withOpacity(0.4),
+                color: AppColors.primary.withOpacity(0.4),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -623,7 +623,7 @@ class _QtyBtn extends StatelessWidget {
         width: 36,
         height: 36,
         decoration: BoxDecoration(
-          color: filled ? AppColors.accent : AppColors.bgLight,
+          color: filled ? AppColors.primary : AppColors.bgLight,
           shape: BoxShape.circle,
           border: filled
               ? null

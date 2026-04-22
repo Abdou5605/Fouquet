@@ -39,6 +39,13 @@ dependencies:
   flutter_launcher_icons: ^0.14.4
   url_launcher: ^6.3.2
   font_awesome_flutter: ^11.0.0
+  image_picker: ^1.2.1
+  get_storage: ^2.1.1
+  flutter_native_splash: ^2.4.7
+  shared_preferences: ^2.5.5
+  talker: ^5.1.16
+  dio: ^5.9.2
+  http: ^1.6.0
 
 flutter_launcher_icons:
   android: true

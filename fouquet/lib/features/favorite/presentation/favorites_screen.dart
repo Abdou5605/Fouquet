@@ -276,7 +276,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                                 width: 32,
                                 height: 32,
                                 decoration: BoxDecoration(
-                                  color: AppColors.accent,
+                                  color: AppColors.primary,
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: const Icon(

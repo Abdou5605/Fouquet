@@ -9,6 +9,7 @@ import 'package:fouquet/core/resources/app_images.dart';
 import 'package:fouquet/core/style/colors.dart';
 import 'package:fouquet/core/style/text_styles.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:fouquet/features/profile/controller/profile_controller.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -26,6 +27,14 @@ class _HomeScreenState extends State<HomeScreen> {
   final _pageCtrl = PageController();
 
   @override
+  void initState() {
+    super.initState();
+    //  Initialiser ProfileController ici car ProfileScreen
+    // est dans un IndexedStack et monté sans passer par la route
+    Get.put(ProfileController());
+  }
+
+  @override
   void dispose() {
     _searchCtrl.dispose();
     _pageCtrl.dispose();
@@ -36,8 +45,9 @@ class _HomeScreenState extends State<HomeScreen> {
     'Tous',
     'Fast Food',
     'Plats Africains',
+    'Plats Européens',
     'Boissons',
-    'Salades',
+    'Déjeuners',
     'Cocktails',
     'Desserts',
     'Cremeries',
@@ -169,21 +179,24 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildHeader() {
+ Widget _buildHeader() {
+    final profile = Get.find<ProfileController>();
+
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [AppColors.primary, AppColors.primary.withOpacity(0.85)],
+          colors: [AppColors.primary, AppColors.secondary],
         ),
         borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
       ),
       padding: const EdgeInsets.fromLTRB(16, 48, 16, 20),
       child: Row(
         children: [
-          GestureDetector(
-            onTap: () => Get.toNamed(AppRoutes.profile),
+          // ✅ Avatar réel depuis ProfileController
+          Obx(() => GestureDetector(
+            onTap: () => setState(() => _selectedNav = 3),
             child: Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
@@ -192,22 +205,29 @@ class _HomeScreenState extends State<HomeScreen> {
               child: CircleAvatar(
                 radius: 24,
                 backgroundColor: AppColors.primary,
-                backgroundImage: const AssetImage(AppImages.onboardAsiatique),
-                onBackgroundImageError: (_, __) {},
+                backgroundImage: profile.profileImage.value != null
+                    ? FileImage(profile.profileImage.value!)
+                    : profile.avatarUrl.value != null
+                        ? NetworkImage(profile.avatarUrl.value!)
+                            as ImageProvider
+                        : const AssetImage(AppImages.onboardAsiatique),
               ),
             ),
-          ),
+          )),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Jhon Anderson',
+                // ✅ Nom réel depuis ProfileController
+                Obx(() => Text(
+                  profile.fullName.value.isEmpty
+                      ? 'Bienvenue 👋'
+                      : profile.fullName.value,
                   style: AppTextStyles.greetingName.copyWith(
                     color: Colors.white,
                   ),
-                ),
+                )),
                 Text(
                   'Good Morning 👋',
                   style: AppTextStyles.greetingText.copyWith(

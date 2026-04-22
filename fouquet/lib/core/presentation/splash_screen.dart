@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fouquet/core/presentation/onboarding_screen.dart';
 import 'package:get/get.dart';
 import 'package:fouquet/core/navigation/app_routes.dart';
 import 'package:fouquet/core/resources/app_images.dart';
@@ -41,8 +42,21 @@ class _SplashScreenState extends State<SplashScreen>
     _ctrl.forward();
 
     // ── Redirection après 3 secondes ─────────────────────
-    Future.delayed(const Duration(seconds: 3), () {
-      Get.offAllNamed(AppRoutes.onboardingScreen);
+    // Remplace le Future.delayed dans initState() par ceci :
+
+    Future.delayed(const Duration(seconds: 3), () async {
+      if (!mounted) return; // ← sécurité si le widget est détruit
+      try {
+        final bool showOnboarding = await OnboardingScreen.shouldShow();
+        if (!mounted) return;
+        Get.offAllNamed(
+          showOnboarding ? AppRoutes.onboardingScreen : AppRoutes.home,
+        );
+      } catch (e) {
+        debugPrint('Erreur splash: $e');
+        if (!mounted) return;
+        Get.offAllNamed(AppRoutes.login); // fallback
+      }
     });
   }
 

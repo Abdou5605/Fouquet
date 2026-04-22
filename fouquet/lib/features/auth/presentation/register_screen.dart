@@ -1,51 +1,18 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fouquet/features/auth/controllers/register_controller.dart';
 import 'package:get/get.dart';
-import 'package:fouquet/core/navigation/app_routes.dart';
 import 'package:fouquet/core/style/colors.dart';
 
-class RegisterScreen extends StatefulWidget {
+class RegisterScreen extends StatelessWidget {
   const RegisterScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
-}
-
-class _RegisterScreenState extends State<RegisterScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _nameCtrl = TextEditingController();
-  final _emailCtrl = TextEditingController();
-  final _phoneCtrl = TextEditingController();
-  final _addressCtrl = TextEditingController();
-  final _passCtrl = TextEditingController();
-  final _confirmCtrl = TextEditingController();
-
-  bool _obscurePass = true;
-  bool _obscureConfirm = true;
-  bool _loading = false;
-
-  @override
-  void dispose() {
-    _nameCtrl.dispose();
-    _emailCtrl.dispose();
-    _phoneCtrl.dispose();
-    _addressCtrl.dispose();
-    _passCtrl.dispose();
-    _confirmCtrl.dispose();
-    super.dispose();
-  }
-
-  void _register() async {
-    if (!_formKey.currentState!.validate()) return;
-    setState(() => _loading = true);
-    await Future.delayed(const Duration(seconds: 2));
-    setState(() => _loading = false);
-    Get.offAllNamed(AppRoutes.verifyEmail);
-  }
-
-  @override
   Widget build(BuildContext context) {
+    // ✅ Controller connecté ici
+    final RegisterController controller = Get.find();
+
     return Scaffold(
       backgroundColor: AppColors.bgLight,
       body: SafeArea(
@@ -53,7 +20,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
             child: Form(
-              key: _formKey,
+              key: controller.formKey,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -62,29 +29,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 40),
                   _buildLabel('Nom complet'),
                   const SizedBox(height: 8),
-                  _buildNameField(),
+                  _buildNameField(controller),
                   const SizedBox(height: 20),
                   _buildLabel('Email'),
                   const SizedBox(height: 8),
-                  _buildEmailField(),
+                  _buildEmailField(controller),
                   const SizedBox(height: 20),
                   _buildLabel('Numéro de téléphone'),
                   const SizedBox(height: 8),
-                  _buildPhoneField(),
+                  _buildPhoneField(controller),
                   const SizedBox(height: 20),
                   _buildLabel('Adresse'),
                   const SizedBox(height: 8),
-                  _buildAddressField(),
+                  _buildAddressField(controller),
                   const SizedBox(height: 20),
                   _buildLabel('Mot de passe'),
                   const SizedBox(height: 8),
-                  _buildPasswordField(),
+                  _buildPasswordField(controller),
                   const SizedBox(height: 20),
                   _buildLabel('Confirmer le mot de passe'),
                   const SizedBox(height: 8),
-                  _buildConfirmField(),
+                  _buildConfirmField(controller),
                   const SizedBox(height: 36),
-                  _buildRegisterBtn(),
+                  _buildRegisterBtn(controller),
                   const SizedBox(height: 28),
                   _buildDivider(),
                   const SizedBox(height: 28),
@@ -151,167 +118,151 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _buildNameField() {
+  Widget _buildNameField(RegisterController controller) {
     return TextFormField(
-      controller: _nameCtrl,
+      controller: controller.nameController,
       keyboardType: TextInputType.name,
       textCapitalization: TextCapitalization.words,
       style: const TextStyle(fontSize: 14, color: AppColors.textDark),
-      validator: (v) {
-        if (v == null || v.isEmpty) return 'Nom requis';
-        if (v.trim().split(' ').length < 2) return 'Entrez prénom et nom';
-        return null;
-      },
-      decoration: _inputDeco(
-        hint: 'Jean Dupont',
-        icon: CupertinoIcons.person,
-      ), // ✅
+      validator: controller.validateName,
+      decoration: _inputDeco(hint: 'Jean Dupont', icon: CupertinoIcons.person),
     );
   }
 
-  Widget _buildEmailField() {
+  Widget _buildEmailField(RegisterController controller) {
     return TextFormField(
-      controller: _emailCtrl,
+      controller: controller.emailController,
       keyboardType: TextInputType.emailAddress,
       style: const TextStyle(fontSize: 14, color: AppColors.textDark),
-      validator: (v) {
-        if (v == null || v.isEmpty) return 'Email requis';
-        if (!v.contains('@')) return 'Email invalide';
-        return null;
-      },
+      validator: controller.validateEmail,
       decoration: _inputDeco(
         hint: 'exemple@email.com',
         icon: CupertinoIcons.mail,
-      ), // ✅
+      ),
     );
   }
 
-  Widget _buildPhoneField() {
+  Widget _buildPhoneField(RegisterController controller) {
     return TextFormField(
-      controller: _phoneCtrl,
+      controller: controller.phoneController,
       keyboardType: TextInputType.phone,
       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
       style: const TextStyle(fontSize: 14, color: AppColors.textDark),
-      validator: (v) {
-        if (v == null || v.isEmpty) return 'Numéro requis';
-        if (v.length < 8) return 'Numéro invalide';
-        return null;
-      },
+      validator: controller.validatePhone,
       decoration: _inputDeco(
-        hint: '+229 00 00 00 00',
+        hint: '+229 01 00 00 00 00',
         icon: CupertinoIcons.phone,
-      ), // ✅
+      ),
     );
   }
 
-  Widget _buildAddressField() {
+  Widget _buildAddressField(RegisterController controller) {
     return TextFormField(
-      controller: _addressCtrl,
+      controller: controller.addressController,
       keyboardType: TextInputType.streetAddress,
       style: const TextStyle(fontSize: 14, color: AppColors.textDark),
-      validator: (v) {
-        if (v == null || v.isEmpty) return 'Adresse requise';
-        return null;
-      },
+      validator: controller.validateAddress,
       decoration: _inputDeco(
         hint: 'Rue, Quartier, Ville',
         icon: CupertinoIcons.location,
-      ), // ✅
+      ),
     );
   }
 
-  Widget _buildPasswordField() {
-    return TextFormField(
-      controller: _passCtrl,
-      obscureText: _obscurePass,
-      style: const TextStyle(fontSize: 14, color: AppColors.textDark),
-      validator: (v) {
-        if (v == null || v.isEmpty) return 'Mot de passe requis';
-        if (v.length < 6) return 'Minimum 6 caractères';
-        return null;
-      },
-      decoration: _inputDeco(
-        hint: '••••••••',
-        icon: CupertinoIcons.lock, // ✅
-        suffix: GestureDetector(
-          onTap: () => setState(() => _obscurePass = !_obscurePass),
-          child: Icon(
-            _obscurePass ? CupertinoIcons.eye_slash : CupertinoIcons.eye,
-            color: AppColors.textGray,
-            size: 20,
-          ), // ✅
+  Widget _buildPasswordField(RegisterController controller) {
+    return Obx(
+      () => TextFormField(
+        controller: controller.passwordController,
+        obscureText: controller.isPasswordHidden.value,
+        style: const TextStyle(fontSize: 14, color: AppColors.textDark),
+        validator: controller.validatePassword,
+        decoration: _inputDeco(
+          hint: '••••••••',
+          icon: CupertinoIcons.lock,
+          suffix: GestureDetector(
+            onTap: controller.togglePassword,
+            child: Icon(
+              controller.isPasswordHidden.value
+                  ? CupertinoIcons.eye_slash
+                  : CupertinoIcons.eye,
+              color: AppColors.textGray,
+              size: 20,
+            ),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildConfirmField() {
-    return TextFormField(
-      controller: _confirmCtrl,
-      obscureText: _obscureConfirm,
-      style: const TextStyle(fontSize: 14, color: AppColors.textDark),
-      validator: (v) {
-        if (v == null || v.isEmpty) return 'Confirmation requise';
-        if (v != _passCtrl.text)
-          return 'Les mots de passe ne correspondent pas';
-        return null;
-      },
-      decoration: _inputDeco(
-        hint: '••••••••',
-        icon: CupertinoIcons.lock, // ✅
-        suffix: GestureDetector(
-          onTap: () => setState(() => _obscureConfirm = !_obscureConfirm),
-          child: Icon(
-            _obscureConfirm ? CupertinoIcons.eye_slash : CupertinoIcons.eye,
-            color: AppColors.textGray,
-            size: 20,
-          ), // ✅
+  Widget _buildConfirmField(RegisterController controller) {
+    return Obx(
+      () => TextFormField(
+        controller: controller.confirmPasswordController,
+        obscureText: controller.isConfirmHidden.value,
+        style: const TextStyle(fontSize: 14, color: AppColors.textDark),
+        validator: controller.validateConfirmPassword,
+        decoration: _inputDeco(
+          hint: '••••••••',
+          icon: CupertinoIcons.lock,
+          suffix: GestureDetector(
+            onTap: controller.toggleConfirmPassword,
+            child: Icon(
+              controller.isConfirmHidden.value
+                  ? CupertinoIcons.eye_slash
+                  : CupertinoIcons.eye,
+              color: AppColors.textGray,
+              size: 20,
+            ),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildRegisterBtn() {
-    return GestureDetector(
-      onTap: _loading ? null : _register,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: double.infinity,
-        height: 56,
-        decoration: BoxDecoration(
-          color: _loading
-              ? AppColors.primary.withOpacity(0.6)
-              : AppColors.primary,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: _loading
-              ? []
-              : [
-                  BoxShadow(
-                    color: AppColors.primary.withOpacity(0.30),
-                    blurRadius: 18,
-                    offset: const Offset(0, 6),
+  // ✅ Bouton connecté au controller.register()
+  Widget _buildRegisterBtn(RegisterController controller) {
+    return Obx(
+      () => GestureDetector(
+        onTap: controller.isLoading.value ? null : controller.register,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: double.infinity,
+          height: 56,
+          decoration: BoxDecoration(
+            color: controller.isLoading.value
+                ? AppColors.primary.withOpacity(0.6)
+                : AppColors.primary,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: controller.isLoading.value
+                ? []
+                : [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.30),
+                      blurRadius: 18,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+          ),
+          child: Center(
+            child: controller.isLoading.value
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2.5,
+                    ),
+                  )
+                : const Text(
+                    "S'inscrire",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.3,
+                    ),
                   ),
-                ],
-        ),
-        child: Center(
-          child: _loading
-              ? const SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 2.5,
-                  ),
-                )
-              : const Text(
-                  "S'inscrire",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.3,
-                  ),
-                ),
+          ),
         ),
       ),
     );
