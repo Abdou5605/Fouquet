@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:fouquet/core/navigation/app_routes.dart';
 import 'package:fouquet/core/presentation/toast.dart';
 import 'package:fouquet/core/style/colors.dart';
+import 'package:fouquet/features/auth/controllers/login_controller.dart';
 import 'package:fouquet/features/auth/service/auth_api_service.dart';
 import 'package:fouquet/features/profile/service/profile_api_service.dart';
 import 'package:get/get.dart';
@@ -11,19 +12,20 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ProfileController extends GetxController {
-
   // ─── Données utilisateur ──────────────────────────────
-  final fullName  = ''.obs;
-  final email     = ''.obs;
-  final phone     = ''.obs;
-  final address   = ''.obs;
+  final fullName = ''.obs;
+  final firstname = ''.obs; // ✅ Ajouté
+  final lastname = ''.obs; // ✅ Ajouté
+  final email = ''.obs;
+  final phone = ''.obs;
+  final address = ''.obs;
   final avatarUrl = RxnString(); // null si pas d'avatar
 
   // ─── Image locale sélectionnée ────────────────────────
   final profileImage = Rxn<File>();
 
   // ─── États ────────────────────────────────────────────
-  final isLoading    = false.obs;
+  final isLoading = true.obs;
   final isLoggingOut = false.obs;
 
   final _picker = ImagePicker();
@@ -36,27 +38,24 @@ class ProfileController extends GetxController {
 
   // ─── Charger le profil ────────────────────────────────
   Future<void> fetchProfile() async {
-    isLoading.value = true;
-
     final user = await ProfileApiService.getProfile();
-
     if (user != null) {
-      fullName.value  = user['full_name']  ?? '';
-      email.value     = user['email']      ?? '';
-      phone.value     = user['phone']      ?? '';
-      address.value   = user['address']    ?? '';
+      // ✅ L'API retourne first_name / last_name
+      firstname.value = user['first_name'] ?? '';
+      lastname.value = user['last_name'] ?? '';
+      fullName.value =
+          user['full_name'] ?? '${firstname.value} ${lastname.value}'.trim();
+      email.value = user['email'] ?? '';
+      phone.value = user['phone'] ?? '';
+      address.value = user['address'] ?? '';
       avatarUrl.value = user['avatar'];
     }
-
     isLoading.value = false;
   }
 
   // ─── Choisir une image ────────────────────────────────
   Future<void> pickImage(ImageSource source) async {
-    final img = await _picker.pickImage(
-      source:       source,
-      imageQuality: 80,
-    );
+    final img = await _picker.pickImage(source: source, imageQuality: 80);
     if (img == null) return;
 
     profileImage.value = File(img.path);
@@ -70,7 +69,7 @@ class ProfileController extends GetxController {
   Future<void> removeAvatar() async {
     final user = await ProfileApiService.deleteAvatar();
     if (user != null) {
-      avatarUrl.value    = null;
+      avatarUrl.value = null;
       profileImage.value = null;
     }
   }
@@ -78,23 +77,24 @@ class ProfileController extends GetxController {
   // ─── Bottom sheet sélection image ────────────────────
   void showImagePicker(BuildContext context) {
     showModalBottomSheet(
-      context:         context,
+      context: context,
       backgroundColor: Colors.transparent,
       builder: (_) => Container(
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 36),
         decoration: const BoxDecoration(
-          color:        Colors.white,
+          color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
         child: Column(
-          mainAxisSize:      MainAxisSize.min,
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
               child: Container(
-                width: 40, height: 4,
+                width: 40,
+                height: 4,
                 decoration: BoxDecoration(
-                  color:        AppColors.divider,
+                  color: AppColors.divider,
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
@@ -103,16 +103,16 @@ class ProfileController extends GetxController {
             Text(
               'Photo de profil',
               style: GoogleFonts.nunito(
-                fontSize:   16,
+                fontSize: 16,
                 fontWeight: FontWeight.w800,
-                color:      AppColors.textDark,
+                color: AppColors.textDark,
               ),
             ),
             const SizedBox(height: 20),
             _photoOption(
               context: context,
-              icon:    CupertinoIcons.camera,
-              label:   'Prendre une photo',
+              icon: CupertinoIcons.camera,
+              label: 'Prendre une photo',
               onTap: () async {
                 Navigator.pop(context);
                 await pickImage(ImageSource.camera);
@@ -121,8 +121,8 @@ class ProfileController extends GetxController {
             const SizedBox(height: 12),
             _photoOption(
               context: context,
-              icon:    CupertinoIcons.photo_on_rectangle,
-              label:   'Choisir depuis la galerie',
+              icon: CupertinoIcons.photo_on_rectangle,
+              label: 'Choisir depuis la galerie',
               onTap: () async {
                 Navigator.pop(context);
                 await pickImage(ImageSource.gallery);
@@ -132,9 +132,9 @@ class ProfileController extends GetxController {
               const SizedBox(height: 12),
               _photoOption(
                 context: context,
-                icon:    CupertinoIcons.trash,
-                label:   'Supprimer la photo',
-                color:   AppColors.secondary,
+                icon: CupertinoIcons.trash,
+                label: 'Supprimer la photo',
+                color: AppColors.secondary,
                 onTap: () async {
                   Navigator.pop(context);
                   await removeAvatar();
@@ -149,10 +149,10 @@ class ProfileController extends GetxController {
 
   Widget _photoOption({
     required BuildContext context,
-    required IconData     icon,
-    required String       label,
+    required IconData icon,
+    required String label,
     required VoidCallback onTap,
-    Color?                color,
+    Color? color,
   }) {
     final c = color ?? AppColors.primary;
     return GestureDetector(
@@ -160,9 +160,9 @@ class ProfileController extends GetxController {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color:        c.withOpacity(0.06),
+          color: c.withOpacity(0.06),
           borderRadius: BorderRadius.circular(14),
-          border:       Border.all(color: c.withOpacity(0.2)),
+          border: Border.all(color: c.withOpacity(0.2)),
         ),
         child: Row(
           children: [
@@ -171,9 +171,9 @@ class ProfileController extends GetxController {
             Text(
               label,
               style: GoogleFonts.nunito(
-                fontSize:   14,
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color:      c,
+                color: c,
               ),
             ),
           ],
@@ -187,15 +187,15 @@ class ProfileController extends GetxController {
     Get.dialog(
       Dialog(
         backgroundColor: Colors.transparent,
-        insetPadding:    const EdgeInsets.symmetric(horizontal: 32),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 32),
         child: Container(
           padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
           decoration: BoxDecoration(
-            color:        AppColors.bgCard,
+            color: AppColors.bgCard,
             borderRadius: BorderRadius.circular(28),
             boxShadow: [
               BoxShadow(
-                color:  Colors.black.withOpacity(0.12),
+                color: Colors.black.withOpacity(0.12),
                 blurRadius: 30,
                 offset: const Offset(0, 10),
               ),
@@ -205,7 +205,8 @@ class ProfileController extends GetxController {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 64, height: 64,
+                width: 64,
+                height: 64,
                 decoration: BoxDecoration(
                   color: AppColors.secondary.withOpacity(0.10),
                   shape: BoxShape.circle,
@@ -213,16 +214,16 @@ class ProfileController extends GetxController {
                 child: Icon(
                   CupertinoIcons.square_arrow_left,
                   color: AppColors.secondary,
-                  size:  28,
+                  size: 28,
                 ),
               ),
               const SizedBox(height: 18),
               Text(
                 'Déconnexion',
                 style: GoogleFonts.nunito(
-                  fontSize:   18,
+                  fontSize: 18,
                   fontWeight: FontWeight.w800,
-                  color:      AppColors.textDark,
+                  color: AppColors.textDark,
                 ),
               ),
               const SizedBox(height: 10),
@@ -231,8 +232,8 @@ class ProfileController extends GetxController {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.nunito(
                   fontSize: 13,
-                  color:    AppColors.textGray,
-                  height:   1.6,
+                  color: AppColors.textGray,
+                  height: 1.6,
                 ),
               ),
               const SizedBox(height: 28),
@@ -244,9 +245,9 @@ class ProfileController extends GetxController {
                       child: Container(
                         height: 46,
                         decoration: BoxDecoration(
-                          color:        AppColors.bgLight,
+                          color: AppColors.bgLight,
                           borderRadius: BorderRadius.circular(14),
-                          border:       Border.all(
+                          border: Border.all(
                             color: AppColors.divider,
                             width: 1.5,
                           ),
@@ -255,9 +256,9 @@ class ProfileController extends GetxController {
                         child: Text(
                           'Annuler',
                           style: GoogleFonts.nunito(
-                            fontSize:   14,
+                            fontSize: 14,
                             fontWeight: FontWeight.w700,
-                            color:      AppColors.textMedium,
+                            color: AppColors.textMedium,
                           ),
                         ),
                       ),
@@ -282,9 +283,9 @@ class ProfileController extends GetxController {
                           borderRadius: BorderRadius.circular(14),
                           boxShadow: [
                             BoxShadow(
-                              color:      AppColors.secondary.withOpacity(0.35),
+                              color: AppColors.secondary.withOpacity(0.35),
                               blurRadius: 10,
-                              offset:     const Offset(0, 4),
+                              offset: const Offset(0, 4),
                             ),
                           ],
                         ),
@@ -292,9 +293,9 @@ class ProfileController extends GetxController {
                         child: Text(
                           'Se déconnecter',
                           style: GoogleFonts.nunito(
-                            fontSize:   14,
+                            fontSize: 14,
                             fontWeight: FontWeight.w700,
-                            color:      Colors.white,
+                            color: Colors.white,
                           ),
                         ),
                       ),
@@ -309,13 +310,17 @@ class ProfileController extends GetxController {
     );
   }
 
-  // ─── Déconnexion ──────────────────────────────────────
   Future<void> logout() async {
     isLoggingOut.value = true;
     await AuthApiService.logout();
     showSuccessToast('Déconnexion réussie', description: 'À bientôt 👋');
     await Future.delayed(const Duration(milliseconds: 800));
-    isLoggingOut.value = false;
+
+    // ✅ Supprime le vieux LoginController avant de naviguer
+    Get.delete<LoginController>(force: true);
+
     Get.offAllNamed(AppRoutes.login);
+    // ❌ Ne pas toucher isLoggingOut après offAllNamed
+    // le controller est détruit à ce stade
   }
 }

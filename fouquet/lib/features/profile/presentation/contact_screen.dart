@@ -6,19 +6,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:fouquet/core/style/colors.dart';
 
-class ContactScreen extends StatefulWidget {
+class ContactScreen extends StatelessWidget {
   const ContactScreen({super.key});
-  @override
-  State<ContactScreen> createState() => _ContactScreenState();
-}
 
-class _ContactScreenState extends State<ContactScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _subjectCtrl = TextEditingController();
-  final _msgCtrl = TextEditingController();
-  bool _loading = false;
-
-  // ── Helper Nunito ──────────────────────────────────────────────────────────
   static TextStyle _nunito({
     double size = 14,
     FontWeight weight = FontWeight.w400,
@@ -33,35 +23,28 @@ class _ContactScreenState extends State<ContactScreen> {
     letterSpacing: letterSpacing,
   );
 
-  @override
-  void dispose() {
-    _subjectCtrl.dispose();
-    _msgCtrl.dispose();
-    super.dispose();
-  }
+  // ── Coordonnées ───────────────────────────────────────────────────────────
+  static const _num1Display = '01 94 94 21 70';
+  static const _num1Dial = '+22901949421 70';
+  static const _num2Display = '01 91 39 14 14';
+  static const _num2Dial = '+22901913914 14';
+  static const _email = 'contact@fouquet.com';
 
   Future<void> _launch(String url) async {
     final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri))
+    if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
-  }
-
-  void _sendMessage() async {
-    if (!_formKey.currentState!.validate()) return;
-    setState(() => _loading = true);
-    await Future.delayed(const Duration(seconds: 2));
-    setState(() => _loading = false);
-    _subjectCtrl.clear();
-    _msgCtrl.clear();
-    Get.snackbar(
-      'Message envoyé 👍',
-      'Nous vous répondrons dans les 24h.',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: AppColors.primary,
-      colorText: Colors.white,
-      borderRadius: 14,
-      margin: const EdgeInsets.all(16),
-    );
+    } else {
+      Get.snackbar(
+        'Erreur',
+        'Impossible d\'ouvrir ce lien.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppColors.secondary.withOpacity(0.9),
+        colorText: Colors.white,
+        borderRadius: 14,
+        margin: const EdgeInsets.all(16),
+      );
+    }
   }
 
   @override
@@ -70,19 +53,87 @@ class _ContactScreenState extends State<ContactScreen> {
       backgroundColor: AppColors.bgLight,
       appBar: _buildAppBar(),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildBanner(),
             const SizedBox(height: 24),
-            _buildSectionTitle('Contactez-nous directement'),
+
+            // ── Appel ─────────────────────────────────────────────────────
+            Text(
+              'Appeler',
+              style: _nunito(
+                size: 15,
+                weight: FontWeight.w800,
+                color: AppColors.textDark,
+              ),
+            ),
             const SizedBox(height: 12),
-            _buildChannels(),
-            const SizedBox(height: 28),
-            _buildSectionTitle('Envoyer un message'),
+            _buildChannelTile(
+              icon: CupertinoIcons.phone,
+              label: 'Téléphone',
+              value: _num1Display,
+              color: Colors.blue,
+              onTap: () => _launch('tel:$_num1Dial'),
+            ),
+            _buildChannelTile(
+              icon: CupertinoIcons.phone,
+              label: 'Téléphone',
+              value: _num2Display,
+              color: Colors.blue,
+              onTap: () => _launch('tel:$_num2Dial'),
+            ),
+            const SizedBox(height: 20),
+
+            // ── WhatsApp ──────────────────────────────────────────────────
+            Text(
+              'WhatsApp',
+              style: _nunito(
+                size: 15,
+                weight: FontWeight.w800,
+                color: AppColors.textDark,
+              ),
+            ),
             const SizedBox(height: 12),
-            _buildForm(),
+            _buildChannelTile(
+              faIcon: FontAwesomeIcons.whatsapp,
+              label: 'WhatsApp',
+              value: _num1Display,
+              color: const Color(0xFF25D366),
+              onTap: () => _launch(
+                'https://wa.me/${_num1Dial.replaceAll(RegExp(r'[^\d]'), '')}',
+              ),
+            ),
+            _buildChannelTile(
+              faIcon: FontAwesomeIcons.whatsapp,
+              label: 'WhatsApp',
+              value: _num2Display,
+              color: const Color(0xFF25D366),
+              onTap: () => _launch(
+                'https://wa.me/${_num2Dial.replaceAll(RegExp(r'[^\d]'), '')}',
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // ── Email ─────────────────────────────────────────────────────
+            Text(
+              'Email',
+              style: _nunito(
+                size: 15,
+                weight: FontWeight.w800,
+                color: AppColors.textDark,
+              ),
+            ),
+            const SizedBox(height: 12),
+            _buildChannelTile(
+              icon: CupertinoIcons.mail,
+              label: 'Email',
+              value: _email,
+              color: Colors.orange,
+              onTap: () => _launch('mailto:$_email'),
+            ),
+            const SizedBox(height: 16),
           ],
         ),
       ),
@@ -124,9 +175,12 @@ class _ContactScreenState extends State<ContactScreen> {
   Widget _buildBanner() => Container(
     padding: const EdgeInsets.all(20),
     decoration: BoxDecoration(
-      color: AppColors.primary.withOpacity(0.07),
+      gradient: LinearGradient(
+        colors: [AppColors.primary, AppColors.primary.withOpacity(0.75)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
       borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: AppColors.primary.withOpacity(0.2)),
     ),
     child: Row(
       children: [
@@ -134,12 +188,12 @@ class _ContactScreenState extends State<ContactScreen> {
           width: 52,
           height: 52,
           decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.15),
+            color: Colors.white.withOpacity(0.2),
             borderRadius: BorderRadius.circular(16),
           ),
-          child: Icon(
+          child: const Icon(
             CupertinoIcons.person_2,
-            color: AppColors.primary,
+            color: Colors.white,
             size: 28,
           ),
         ),
@@ -153,7 +207,7 @@ class _ContactScreenState extends State<ContactScreen> {
                 style: _nunito(
                   size: 15,
                   weight: FontWeight.w800,
-                  color: AppColors.textDark,
+                  color: Colors.white,
                 ),
               ),
               const SizedBox(height: 4),
@@ -161,7 +215,7 @@ class _ContactScreenState extends State<ContactScreen> {
                 'Réponse garantie sous 24h en semaine.',
                 style: _nunito(
                   size: 12,
-                  color: AppColors.textGray,
+                  color: Colors.white.withOpacity(0.85),
                   height: 1.4,
                 ),
               ),
@@ -172,46 +226,16 @@ class _ContactScreenState extends State<ContactScreen> {
     ),
   );
 
-  // ── Titre de section ──────────────────────────────────────────────────────
-  Widget _buildSectionTitle(String t) => Text(
-    t,
-    style: _nunito(
-      size: 15,
-      weight: FontWeight.w800,
-      color: AppColors.textDark,
-    ),
-  );
-
-  // ── Canaux de contact ─────────────────────────────────────────────────────
-  Widget _buildChannels() {
-    final channels = [
-      _ContactChannel(
-        icon: CupertinoIcons.phone,
-        label: 'Téléphone',
-        value: '+229 01 23 45 67',
-        color: Colors.blue,
-        onTap: () => _launch('tel:+22901234567'),
-      ),
-      _ContactChannel(
-        faIcon: FontAwesomeIcons.whatsapp,
-        label: 'WhatsApp',
-        value: '+229 01 23 45 67',
-        color: const Color(0xFF25D366),
-        onTap: () => _launch('https://wa.me/22901234567'),
-      ),
-      _ContactChannel(
-        icon: CupertinoIcons.mail,
-        label: 'Email',
-        value: 'contact@fouquet.com',
-        color: Colors.orange,
-        onTap: () => _launch('mailto:contact@fouquet.com'),
-      ),
-    ];
-    return Column(children: channels.map((c) => _buildChannelTile(c)).toList());
-  }
-
-  Widget _buildChannelTile(_ContactChannel c) => GestureDetector(
-    onTap: c.onTap,
+  // ── Tuile canal ───────────────────────────────────────────────────────────
+  Widget _buildChannelTile({
+    IconData? icon,
+    dynamic faIcon,
+    required String label,
+    required String value,
+    required Color color,
+    required VoidCallback onTap,
+  }) => GestureDetector(
+    onTap: onTap,
     child: Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -226,12 +250,18 @@ class _ContactScreenState extends State<ContactScreen> {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: c.color.withOpacity(0.12),
+              color: color.withOpacity(0.12),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: c.faIcon != null
-                ? Center(child: FaIcon(c.faIcon!, color: c.color, size: 22))
-                : Icon(c.icon!, color: c.color, size: 22),
+            child: faIcon != null
+                ? Center(
+                    child: FaIcon(
+                      faIcon as FaIconData?,
+                      color: color,
+                      size: 22,
+                    ),
+                  )
+                : Icon(icon!, color: color, size: 22),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -239,7 +269,7 @@ class _ContactScreenState extends State<ContactScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  c.label,
+                  label,
                   style: _nunito(
                     size: 13,
                     weight: FontWeight.w700,
@@ -247,7 +277,7 @@ class _ContactScreenState extends State<ContactScreen> {
                   ),
                 ),
                 Text(
-                  c.value,
+                  value,
                   style: _nunito(size: 13, color: AppColors.textGray),
                 ),
               ],
@@ -262,174 +292,4 @@ class _ContactScreenState extends State<ContactScreen> {
       ),
     ),
   );
-
-  // ── Formulaire ────────────────────────────────────────────────────────────
-  Widget _buildForm() => Form(
-    key: _formKey,
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildLabel('Sujet'),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: _subjectCtrl,
-          style: _nunito(size: 14, color: AppColors.textDark),
-          validator: (v) => (v == null || v.isEmpty) ? 'Sujet requis' : null,
-          decoration: _inputDeco(
-            hint: 'Ex : Problème avec ma commande',
-            icon: CupertinoIcons.textformat,
-          ),
-        ),
-        const SizedBox(height: 20),
-        _buildLabel('Message'),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: _msgCtrl,
-          maxLines: 5,
-          style: _nunito(size: 14, color: AppColors.textDark),
-          validator: (v) {
-            if (v == null || v.isEmpty) return 'Message requis';
-            if (v.length < 10) return 'Message trop court';
-            return null;
-          },
-          decoration: InputDecoration(
-            hintText: 'Décrivez votre problème ou question…',
-            hintStyle: _nunito(size: 14, color: AppColors.textGray),
-            filled: true,
-            fillColor: AppColors.bgCard,
-            contentPadding: const EdgeInsets.all(16),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: AppColors.divider, width: 1.5),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: AppColors.primary, width: 2),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: AppColors.secondary, width: 1.5),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: AppColors.secondary, width: 2),
-            ),
-          ),
-        ),
-        const SizedBox(height: 28),
-        _buildSubmitBtn(),
-        const SizedBox(height: 32),
-      ],
-    ),
-  );
-
-  // ── Label champ ───────────────────────────────────────────────────────────
-  Widget _buildLabel(String text) => Text(
-    text,
-    style: _nunito(
-      size: 13,
-      weight: FontWeight.w700,
-      color: AppColors.textDark,
-      letterSpacing: 0.2,
-    ),
-  );
-
-  InputDecoration _inputDeco({required String hint, required IconData icon}) =>
-      InputDecoration(
-        hintText: hint,
-        hintStyle: _nunito(size: 14, color: AppColors.textGray),
-        prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
-        filled: true,
-        fillColor: AppColors.bgCard,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 17,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: AppColors.divider, width: 1.5),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: AppColors.primary, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: AppColors.secondary, width: 1.5),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: AppColors.secondary, width: 2),
-        ),
-      );
-
-  // ── Bouton envoyer ────────────────────────────────────────────────────────
-  Widget _buildSubmitBtn() => GestureDetector(
-    onTap: _loading ? null : _sendMessage,
-    child: AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      width: double.infinity,
-      height: 56,
-      decoration: BoxDecoration(
-        color: _loading
-            ? AppColors.primary.withOpacity(0.6)
-            : AppColors.primary,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: _loading
-            ? []
-            : [
-                BoxShadow(
-                  color: AppColors.primary.withOpacity(0.3),
-                  blurRadius: 18,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-      ),
-      child: Center(
-        child: _loading
-            ? const SizedBox(
-                width: 22,
-                height: 22,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2.5,
-                ),
-              )
-            : Text(
-                'Envoyer',
-                style: _nunito(
-                  size: 15,
-                  weight: FontWeight.w800,
-                  color: Colors.white,
-                  letterSpacing: 0.3,
-                ),
-              ),
-      ),
-    ),
-  );
-}
-
-// ── Modèle canal ─────────────────────────────────────────────────────────────
-class _ContactChannel {
-  final IconData? icon;
-  final dynamic faIcon;
-  final String label, value;
-  final Color color;
-  final VoidCallback onTap;
-  const _ContactChannel({
-    this.icon,
-    this.faIcon,
-    required this.label,
-    required this.value,
-    required this.color,
-    required this.onTap,
-  });
 }

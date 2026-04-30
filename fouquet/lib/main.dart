@@ -4,12 +4,15 @@ import 'package:fouquet/core/navigation/app_pages.dart';
 import 'package:fouquet/core/navigation/app_routes.dart';
 import 'package:fouquet/core/style/theme.dart';
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // ← ajouter
+import 'package:shared_preferences/shared_preferences.dart';
+
+// ✅ RouteObserver global
+final RouteObserver<ModalRoute<void>> routeObserver =
+    RouteObserver<ModalRoute<void>>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ✅ Initialiser SharedPreferences AVANT runApp
   await SharedPreferences.getInstance();
 
   await SystemChrome.setPreferredOrientations([
@@ -39,6 +42,8 @@ class MyApp extends StatelessWidget {
       initialRoute: AppRoutes.splash,
       getPages: AppPages.pages,
       defaultTransition: Transition.fadeIn,
+      // ✅ Enregistrer le routeObserver
+      navigatorObservers: [routeObserver],
     );
   }
 }

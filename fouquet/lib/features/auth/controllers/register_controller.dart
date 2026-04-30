@@ -5,7 +5,8 @@ import '../service/auth_api_service.dart';
 
 class RegisterController extends GetxController {
   // ─── Controllers des champs ───────────────────────────
-  final nameController = TextEditingController();
+  final firstNameController = TextEditingController();
+  final lastNameController = TextEditingController();
   final emailController = TextEditingController();
   final phoneController = TextEditingController();
   final addressController = TextEditingController();
@@ -22,10 +23,21 @@ class RegisterController extends GetxController {
   void togglePassword() => isPasswordHidden.toggle();
   void toggleConfirmPassword() => isConfirmHidden.toggle();
 
+  // ─── Nettoyage numéro ─────────────────────────────────
+  String _cleanPhone(String value) {
+    String phone = value.replaceAll(RegExp(r'[\s\-\+]'), '');
+    if (phone.startsWith('229')) phone = phone.substring(3);
+    return phone;
+  }
+
   // ─── Validation ───────────────────────────────────────
-  String? validateName(String? value) {
+  String? validateFirstName(String? value) {
+    if (value == null || value.trim().isEmpty) return 'Prénom requis';
+    return null;
+  }
+
+  String? validateLastName(String? value) {
     if (value == null || value.trim().isEmpty) return 'Nom requis';
-    if (value.trim().split(' ').length < 2) return 'Entrez prénom et nom';
     return null;
   }
 
@@ -37,7 +49,8 @@ class RegisterController extends GetxController {
 
   String? validatePhone(String? value) {
     if (value == null || value.trim().isEmpty) return 'Numéro requis';
-    final phone = value.trim();
+    final phone = _cleanPhone(value);
+    if (!RegExp(r'^\d+$').hasMatch(phone)) return 'Chiffres uniquement';
     if (phone.length != 10) return 'Le numéro doit contenir 10 chiffres';
     if (!phone.startsWith('01')) return 'Le numéro doit commencer par 01';
     return null;
@@ -68,16 +81,11 @@ class RegisterController extends GetxController {
 
     isLoading.value = true;
 
-    // ── Séparer le nom complet en prénom / nom ─────────
-    final nameParts = nameController.text.trim().split(' ');
-    final firstname = nameParts.first;
-    final lastname = nameParts.sublist(1).join(' ');
-
     final success = await AuthApiService.register(
-      firstname: firstname,
-      lastname: lastname,
+      firstname: firstNameController.text.trim(),
+      lastname: lastNameController.text.trim(),
       email: emailController.text.trim(),
-      phone: phoneController.text.trim(),
+      phone: _cleanPhone(phoneController.text),
       address: addressController.text.trim(),
       password: passwordController.text,
       passwordConfirmation: confirmPasswordController.text,
@@ -102,7 +110,8 @@ class RegisterController extends GetxController {
   // ─── Nettoyage ────────────────────────────────────────
   @override
   void onClose() {
-    nameController.dispose();
+    firstNameController.dispose();
+    lastNameController.dispose();
     emailController.dispose();
     phoneController.dispose();
     addressController.dispose();

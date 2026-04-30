@@ -10,7 +10,6 @@ class RegisterScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ Controller connecté ici
     final RegisterController controller = Get.find();
 
     return Scaffold(
@@ -27,9 +26,13 @@ class RegisterScreen extends StatelessWidget {
                 children: [
                   _buildHeader(),
                   const SizedBox(height: 40),
-                  _buildLabel('Nom complet'),
+                  _buildLabel('Prénom'),
                   const SizedBox(height: 8),
-                  _buildNameField(controller),
+                  _buildFirstNameField(controller),
+                  const SizedBox(height: 20),
+                  _buildLabel('Nom'),
+                  const SizedBox(height: 8),
+                  _buildLastNameField(controller),
                   const SizedBox(height: 20),
                   _buildLabel('Email'),
                   const SizedBox(height: 8),
@@ -118,14 +121,25 @@ class RegisterScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildNameField(RegisterController controller) {
+  Widget _buildFirstNameField(RegisterController controller) {
     return TextFormField(
-      controller: controller.nameController,
+      controller: controller.firstNameController,
       keyboardType: TextInputType.name,
       textCapitalization: TextCapitalization.words,
       style: const TextStyle(fontSize: 14, color: AppColors.textDark),
-      validator: controller.validateName,
-      decoration: _inputDeco(hint: 'Jean Dupont', icon: CupertinoIcons.person),
+      validator: controller.validateFirstName,
+      decoration: _inputDeco(hint: 'Abdou', icon: CupertinoIcons.person),
+    );
+  }
+
+  Widget _buildLastNameField(RegisterController controller) {
+    return TextFormField(
+      controller: controller.lastNameController,
+      keyboardType: TextInputType.name,
+      textCapitalization: TextCapitalization.words,
+      style: const TextStyle(fontSize: 14, color: AppColors.textDark),
+      validator: controller.validateLastName,
+      decoration: _inputDeco(hint: 'ABLADON', icon: CupertinoIcons.person),
     );
   }
 
@@ -150,7 +164,7 @@ class RegisterScreen extends StatelessWidget {
       style: const TextStyle(fontSize: 14, color: AppColors.textDark),
       validator: controller.validatePhone,
       decoration: _inputDeco(
-        hint: '+229 01 00 00 00 00',
+        hint: '01 00 00 00 00',
         icon: CupertinoIcons.phone,
       ),
     );
@@ -219,7 +233,6 @@ class RegisterScreen extends StatelessWidget {
     );
   }
 
-  // ✅ Bouton connecté au controller.register()
   Widget _buildRegisterBtn(RegisterController controller) {
     return Obx(
       () => GestureDetector(

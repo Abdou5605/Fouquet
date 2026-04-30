@@ -14,12 +14,15 @@ import 'package:fouquet/features/booking/presentation/booking_space_screen.dart'
 import 'package:fouquet/features/cart/presentation/cart_screen.dart';
 import 'package:fouquet/features/cart/presentation/checkout_screen.dart';
 import 'package:fouquet/features/cart/presentation/payment_screen.dart';
+import 'package:fouquet/features/favorite/controller/favorite_controller.dart';
 import 'package:fouquet/features/favorite/presentation/favorites_screen.dart';
 import 'package:fouquet/features/home/presentation/all_products_screen.dart';
 import 'package:fouquet/features/home/presentation/home_screen.dart';
 import 'package:fouquet/features/home/presentation/product_detail_screen.dart';
 import 'package:fouquet/features/profile/controller/change_password_controller.dart';
+import 'package:fouquet/features/profile/controller/order_history_controller.dart';
 import 'package:fouquet/features/profile/controller/profile_controller.dart';
+import 'package:fouquet/features/profile/controller/referral_controller.dart';
 import 'package:fouquet/features/profile/presentation/change_password_screen.dart';
 import 'package:fouquet/features/profile/presentation/contact_screen.dart';
 import 'package:fouquet/features/profile/presentation/edit_profile_screen.dart';
@@ -32,6 +35,7 @@ import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_instance/src/bindings_interface.dart';
 import 'package:get/get_instance/src/extension_instance.dart';
 import 'package:get/get_navigation/src/routes/get_route.dart';
+import 'package:fouquet/features/home/controllers/products_detail_controller.dart';
 
 class AppPages {
   static final pages = [
@@ -51,23 +55,29 @@ class AppPages {
     GetPage(
       name: AppRoutes.login,
       page: () => LoginScreen(),
-      binding: BindingsBuilder(() => Get.lazyPut(() => LoginController())),
+      binding: BindingsBuilder(
+        () => Get.lazyPut(() => LoginController(), fenix: true),
+      ),
     ),
     GetPage(
       name: AppRoutes.register,
       page: () => const RegisterScreen(),
-      binding: BindingsBuilder(() => Get.lazyPut(() => RegisterController())),
+      binding: BindingsBuilder(
+        () => Get.lazyPut(() => RegisterController(), fenix: true),
+      ),
     ),
     GetPage(
       name: AppRoutes.otp,
       page: () => const OtpScreen(),
-      binding: BindingsBuilder(() => Get.lazyPut(() => OtpController())),
+      binding: BindingsBuilder(
+        () => Get.lazyPut(() => OtpController(), fenix: true),
+      ),
     ),
     GetPage(
       name: AppRoutes.forgotPassword,
       page: () => const ForgotPasswordScreen(),
       binding: BindingsBuilder(
-        () => Get.lazyPut(() => ForgotPasswordController()),
+        () => Get.lazyPut(() => ForgotPasswordController(), fenix: true),
       ),
     ),
 
@@ -77,6 +87,9 @@ class AppPages {
     GetPage(
       name: AppRoutes.productDetail,
       page: () => const ProductDetailScreen(),
+      binding: BindingsBuilder(
+        () => Get.lazyPut(() => ProductDetailController(), fenix: true),
+      ),
     ),
 
     // ── Cart / Checkout ────────────────────────────────
@@ -90,12 +103,7 @@ class AppPages {
       page: () => const ProfileScreen(),
       binding: BindingsBuilder(() => Get.lazyPut(() => ProfileController())),
     ),
-    GetPage(
-      name: AppRoutes.editProfile,
-      page: () => const EditProfileScreen(),
-      binding: BindingsBuilder(() => Get.lazyPut(() => EditProfileController())
-      ),
-    ),
+    GetPage(name: AppRoutes.editProfile, page: () => const EditProfileScreen()),
     GetPage(
       name: AppRoutes.changePassword,
       page: () => const ChangePasswordScreen(),
@@ -106,10 +114,21 @@ class AppPages {
     GetPage(
       name: AppRoutes.orderHistory,
       page: () => const OrderHistoryScreen(),
+      binding: BindingsBuilder(() => Get.put(OrderHistoryController())),
     ),
-    GetPage(name: AppRoutes.favorites, page: () => const FavoritesScreen()),
+    GetPage(
+      name: AppRoutes.favorites,
+      page: () => const FavoritesScreen(),
+      binding: BindingsBuilder(
+        () => Get.lazyPut(() => FavoriteController(), fenix: true),
+      ),
+    ),
     GetPage(name: AppRoutes.bookSpace, page: () => const BookSpaceScreen()),
-    GetPage(name: AppRoutes.referral, page: () => const ReferralScreen()),
+    GetPage(
+      name: AppRoutes.referral,
+      page: () => const ReferralScreen(),
+      binding: BindingsBuilder(() => Get.put(PromoCodeController())),
+    ),
     GetPage(name: AppRoutes.helpCenter, page: () => const HelpCenterScreen()),
     GetPage(name: AppRoutes.contact, page: () => const ContactScreen()),
   ];

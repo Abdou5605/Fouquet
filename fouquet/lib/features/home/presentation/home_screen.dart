@@ -1,8 +1,12 @@
+import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fouquet/core/navigation/app_routes.dart';
+import 'package:fouquet/features/cart/controller/cart_controller.dart';
 import 'package:fouquet/features/cart/presentation/cart_screen.dart';
+import 'package:fouquet/features/favorite/controller/favorite_controller.dart';
 import 'package:fouquet/features/favorite/presentation/favorites_screen.dart';
+import 'package:fouquet/features/home/controllers/home_controller.dart';
 import 'package:fouquet/features/profile/presentation/profile_screen.dart';
 import 'package:get/get.dart';
 import 'package:fouquet/core/resources/app_images.dart';
@@ -19,106 +23,53 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _selectedCategory = 0;
+  late final HomeController _menu;
+
   int _selectedNav = 0;
   int _currentBanner = 0;
   final _searchCtrl = TextEditingController();
-  String _query = '';
   final _pageCtrl = PageController();
+  final _scrollCtrl = ScrollController(); // ✅ Pour détecter la fin du scroll
+  Timer? _bannerTimer; // ✅ Timer auto-scroll bannières
 
   @override
   void initState() {
     super.initState();
-    //  Initialiser ProfileController ici car ProfileScreen
-    // est dans un IndexedStack et monté sans passer par la route
     Get.put(ProfileController());
+    _menu = Get.put(HomeController());
+    Get.put(FavoriteController());
+
+    // ✅ Pagination : charge plus quand on approche la fin
+    _scrollCtrl.addListener(() {
+      if (_scrollCtrl.position.pixels >=
+          _scrollCtrl.position.maxScrollExtent - 300) {
+        _menu.loadMoreDishes();
+      }
+    });
   }
 
   @override
   void dispose() {
     _searchCtrl.dispose();
     _pageCtrl.dispose();
+    _scrollCtrl.dispose();
+    _bannerTimer?.cancel();
     super.dispose();
   }
 
-  final List<String> _categories = [
-    'Tous',
-    'Fast Food',
-    'Plats Africains',
-    'Plats Européens',
-    'Boissons',
-    'Déjeuners',
-    'Cocktails',
-    'Desserts',
-    'Cremeries',
-  ];
-
-  final List<Map<String, dynamic>> _products = [
-    {
-      'name': 'King Burger',
-      'price': 4000,
-      'oldPrice': 5000,
-      'image': AppImages.viande,
-      'badge': 'TOP\nSALE',
-      'badgeColor': AppColors.badgeOff,
-      'category': 'Fast Food',
-    },
-    {
-      'name': 'Pizza Fouquet',
-      'price': 7500,
-      'oldPrice': null,
-      'image': AppImages.rizaugras,
-      'badge': '9%\nOFF',
-      'badgeColor': AppColors.badgeOff,
-      'category': 'Plats Africains',
-    },
-    {
-      'name': 'Shawarma Royal',
-      'price': 3000,
-      'oldPrice': 6000,
-      'image': AppImages.frite,
-      'badge': '9%\nOFF',
-      'badgeColor': AppColors.badgeOff,
-      'category': 'Fast Food',
-    },
-    {
-      'name': 'Salade Fouquet',
-      'price': 7500,
-      'oldPrice': null,
-      'image': AppImages.raisin,
-      'badge': 'TOP\nSALE',
-      'badgeColor': AppColors.badgeOff,
-      'category': 'Salades',
-    },
-    {
-      'name': 'Mini Burger',
-      'price': 2500,
-      'oldPrice': null,
-      'image': AppImages.viande,
-      'badge': null,
-      'badgeColor': null,
-      'category': 'Fast Food',
-    },
-    {
-      'name': 'Pizza Royale',
-      'price': 8500,
-      'oldPrice': null,
-      'image': AppImages.rizaugras,
-      'badge': null,
-      'badgeColor': null,
-      'category': 'Plats Africains',
-    },
-  ];
-
-  List<Map<String, dynamic>> get _filteredProducts {
-    final cat = _categories[_selectedCategory];
-    return _products.where((p) {
-      final matchCat = cat == 'Tous' || p['category'] == cat;
-      final matchQuery =
-          _query.isEmpty ||
-          (p['name'] as String).toLowerCase().contains(_query.toLowerCase());
-      return matchCat && matchQuery;
-    }).toList();
+  // ✅ Démarre l'auto-scroll des bannières une fois qu'elles sont chargées
+  void _startBannerAutoScroll(int bannerCount) {
+    _bannerTimer?.cancel();
+    if (bannerCount <= 1) return;
+    _bannerTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (!_pageCtrl.hasClients) return;
+      final next = (_currentBanner + 1) % bannerCount;
+      _pageCtrl.animateToPage(
+        next,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+    });
   }
 
   @override
@@ -129,7 +80,6 @@ class _HomeScreenState extends State<HomeScreen> {
         index: _selectedNav,
         children: [
           _buildHomeBody(),
-          // ✅ onBack ramène sur l'onglet Home
           CartScreen(onBack: () => setState(() => _selectedNav = 0)),
           FavoritesScreen(onBack: () => setState(() => _selectedNav = 0)),
           const ProfileScreen(),
@@ -139,11 +89,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // ── Body principal ────────────────────────────────────────────────────────
   Widget _buildHomeBody() {
-    final products = _filteredProducts;
     return SafeArea(
       top: false,
       child: CustomScrollView(
+        controller: _scrollCtrl, // ✅ Attaché au scroll controller
         slivers: [
           SliverToBoxAdapter(child: _buildHeader()),
           const SliverToBoxAdapter(child: SizedBox(height: 20)),
@@ -155,33 +106,54 @@ class _HomeScreenState extends State<HomeScreen> {
           const SliverToBoxAdapter(child: SizedBox(height: 16)),
           SliverToBoxAdapter(child: _buildSearchBar()),
           const SliverToBoxAdapter(child: SizedBox(height: 16)),
-          products.isEmpty
-              ? SliverToBoxAdapter(child: _buildEmpty())
-              : SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  sliver: SliverGrid(
-                    delegate: SliverChildBuilderDelegate(
-                      (_, i) => _buildProductCard(products[i]),
-                      childCount: products.length,
-                    ),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          mainAxisSpacing: 16,
-                          crossAxisSpacing: 16,
-                          childAspectRatio: 0.75,
-                        ),
-                  ),
+          Obx(() {
+            if (_menu.dishesLoading.value && _menu.dishes.isEmpty) {
+              return SliverToBoxAdapter(child: _buildDishesLoader());
+            }
+            final list = _menu.filteredDishes;
+            if (list.isEmpty) {
+              return SliverToBoxAdapter(child: _buildEmpty());
+            }
+            return SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverGrid(
+                delegate: SliverChildBuilderDelegate(
+                  (_, i) => _buildDishCard(list[i]),
+                  childCount: list.length,
                 ),
-          const SliverToBoxAdapter(child: SizedBox(height: 30)),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 16,
+                  childAspectRatio: 0.75,
+                ),
+              ),
+            );
+          }),
+          // ✅ Indicateur de chargement en bas quand on charge plus
+          Obx(
+            () => SliverToBoxAdapter(
+              child: _menu.isLoadingMore.value
+                  ? Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.primary,
+                          strokeWidth: 2.5,
+                        ),
+                      ),
+                    )
+                  : const SizedBox(height: 30),
+            ),
+          ),
         ],
       ),
     );
   }
 
- Widget _buildHeader() {
+  // ── Header ────────────────────────────────────────────────────────────────
+  Widget _buildHeader() {
     final profile = Get.find<ProfileController>();
-
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -194,40 +166,41 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.fromLTRB(16, 48, 16, 20),
       child: Row(
         children: [
-          // ✅ Avatar réel depuis ProfileController
-          Obx(() => GestureDetector(
-            onTap: () => setState(() => _selectedNav = 3),
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2.5),
-              ),
-              child: CircleAvatar(
-                radius: 24,
-                backgroundColor: AppColors.primary,
-                backgroundImage: profile.profileImage.value != null
-                    ? FileImage(profile.profileImage.value!)
-                    : profile.avatarUrl.value != null
-                        ? NetworkImage(profile.avatarUrl.value!)
-                            as ImageProvider
-                        : const AssetImage(AppImages.onboardAsiatique),
+          Obx(
+            () => GestureDetector(
+              onTap: () => setState(() => _selectedNav = 3),
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2.5),
+                ),
+                child: CircleAvatar(
+                  radius: 24,
+                  backgroundColor: AppColors.primary,
+                  backgroundImage: profile.profileImage.value != null
+                      ? FileImage(profile.profileImage.value!)
+                      : profile.avatarUrl.value != null
+                      ? NetworkImage(profile.avatarUrl.value!) as ImageProvider
+                      : const AssetImage(AppImages.onboardAsiatique),
+                ),
               ),
             ),
-          )),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ✅ Nom réel depuis ProfileController
-                Obx(() => Text(
-                  profile.fullName.value.isEmpty
-                      ? 'Bienvenue 👋'
-                      : profile.fullName.value,
-                  style: AppTextStyles.greetingName.copyWith(
-                    color: Colors.white,
+                Obx(
+                  () => Text(
+                    profile.fullName.value.isEmpty
+                        ? 'Bienvenue 👋'
+                        : profile.fullName.value,
+                    style: AppTextStyles.greetingName.copyWith(
+                      color: Colors.white,
+                    ),
                   ),
-                )),
+                ),
                 Text(
                   'Good Morning 👋',
                   style: AppTextStyles.greetingText.copyWith(
@@ -237,293 +210,219 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-          GestureDetector(
-            onTap: () {},
-            child: Stack(
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
+          Stack(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  CupertinoIcons.bell,
+                  color: Colors.white,
+                  size: 22,
+                ),
+              ),
+              Positioned(
+                top: 6,
+                right: 6,
+                child: Container(
+                  width: 10,
+                  height: 10,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: AppColors.secondary,
                     shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    CupertinoIcons.bell,
-                    color: Colors.white,
-                    size: 22,
+                    border: Border.all(color: Colors.white, width: 1.5),
                   ),
                 ),
-                Positioned(
-                  top: 6,
-                  right: 6,
-                  child: Container(
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      color: AppColors.secondary,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 1.5),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
+  // ── Bannières dynamiques avec auto-scroll ─────────────────────────────────
   Widget _buildBannerCarousel() {
-    return Column(
-      children: [
-        SizedBox(
-          height: 150,
-          child: PageView(
-            controller: _pageCtrl,
-            onPageChanged: (i) => setState(() => _currentBanner = i),
-            children: [_buildPromoBanner(), _buildBookSpaceBanner()],
+    return Obx(() {
+      if (_menu.bannersLoading.value) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Container(
+            height: 150,
+            decoration: BoxDecoration(
+              color: AppColors.divider,
+              borderRadius: BorderRadius.circular(20),
+            ),
           ),
-        ),
-        const SizedBox(height: 10),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(
-            2,
-            (i) => AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              width: _currentBanner == i ? 20 : 6,
-              height: 6,
-              decoration: BoxDecoration(
-                color: _currentBanner == i
-                    ? AppColors.primary
-                    : AppColors.divider,
-                borderRadius: BorderRadius.circular(4),
+        );
+      }
+
+      final banners = _menu.banners;
+      if (banners.isEmpty) return const SizedBox.shrink();
+
+      // ✅ Démarre l'auto-scroll dès que les bannières sont disponibles
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _startBannerAutoScroll(banners.length),
+      );
+
+      return Column(
+        children: [
+          SizedBox(
+            height: 150,
+            child: PageView.builder(
+              controller: _pageCtrl,
+              itemCount: banners.length,
+              onPageChanged: (i) => setState(() => _currentBanner = i),
+              itemBuilder: (_, i) => _buildBannerItem(banners[i]),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              banners.length,
+              (i) => AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                width: _currentBanner == i ? 20 : 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: _currentBanner == i
+                      ? AppColors.primary
+                      : AppColors.divider,
+                  borderRadius: BorderRadius.circular(4),
+                ),
               ),
             ),
           ),
-        ),
-      ],
-    );
+        ],
+      );
+    });
   }
 
-  Widget _buildPromoBanner() {
+  Widget _buildBannerItem(Map<String, dynamic> banner) {
+    final title = banner['title'] as String;
+    final image = banner['image'] as String?;
+    final type = banner['type'] as String?;
+    final actionLabel =
+        (banner['action'] as Map<String, dynamic>?)?['label'] as String? ??
+        'Voir';
+
+    void onTap() {
+      if (type == 'space') {
+        Get.toNamed(AppRoutes.bookSpace);
+      } else if (type == 'dishe') {
+        Get.toNamed(AppRoutes.allProducts);
+      }
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(0.12),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: AppColors.primary.withOpacity(0.25),
-            width: 1.5,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            color: AppColors.primary.withOpacity(0.1),
           ),
-        ),
-        clipBehavior: Clip.hardEdge,
-        child: Stack(
-          children: [
-            Positioned(
-              right: 0,
-              top: 0,
-              bottom: 0,
-              child: Image.asset(
-                AppImages.frite,
-                width: 160,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const SizedBox(),
-              ),
-            ),
-            Positioned(
-              right: 0,
-              top: 0,
-              bottom: 0,
-              width: 170,
-              child: Container(
+          clipBehavior: Clip.hardEdge,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (image != null)
+                Image.network(
+                  image,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) =>
+                      Container(color: AppColors.primary.withOpacity(0.15)),
+                ),
+              Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.centerRight,
                     end: Alignment.centerLeft,
                     colors: [
-                      Colors.transparent,
-                      AppColors.primary.withOpacity(0.10),
+                      Colors.black.withOpacity(0.1),
+                      Colors.black.withOpacity(0.65),
                     ],
-                  ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.secondary,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Text(
-                      'Today Only',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    '20% OFF',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.primary,
-                      height: 1.1,
-                    ),
-                  ),
-                  Text(
-                    'Super Discount',
-                    style: TextStyle(fontSize: 13, color: AppColors.textMedium),
-                  ),
-                  const SizedBox(height: 10),
-                  GestureDetector(
-                    onTap: () => Get.toNamed(AppRoutes.cart),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 7,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Text(
-                        'Commander',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBookSpaceBanner() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: GestureDetector(
-        onTap: () => Get.toNamed(AppRoutes.bookSpace),
-        child: Container(
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
-          clipBehavior: Clip.hardEdge,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: Image.asset(
-                  AppImages.rizaugras,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) =>
-                      Container(color: AppColors.secondary.withOpacity(0.8)),
-                ),
-              ),
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.centerRight,
-                      end: Alignment.centerLeft,
-                      colors: [
-                        AppColors.secondary.withOpacity(0.3),
-                        AppColors.secondary.withOpacity(0.92),
-                      ],
-                    ),
                   ),
                 ),
               ),
               Padding(
                 padding: const EdgeInsets.all(18),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    if (type == 'space')
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.25),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Text(
+                          'Événements & Privatisation',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    if (type == 'space') const SizedBox(height: 6),
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        height: 1.2,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: type == 'space'
+                            ? Colors.white
+                            : AppColors.primary,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 3,
+                          if (type == 'product') ...[
+                            const Icon(
+                              CupertinoIcons.cart_badge_plus,
+                              color: Colors.white,
+                              size: 13,
                             ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.25),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: const Text(
-                              'Événements & Privatisation',
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          const Text(
-                            'Réservez\nnotre espace',
+                            const SizedBox(width: 5),
+                          ],
+                          Text(
+                            actionLabel,
                             style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              height: 1.2,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              'Réserver maintenant',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.secondary,
-                              ),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: type == 'space'
+                                  ? AppColors.secondary
+                                  : Colors.white,
                             ),
                           ),
                         ],
-                      ),
-                    ),
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: const Icon(
-                        CupertinoIcons.calendar_badge_plus,
-                        color: Colors.white,
-                        size: 26,
                       ),
                     ),
                   ],
@@ -536,6 +435,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // ── Header catégories ─────────────────────────────────────────────────────
   Widget _buildCategoriesHeader() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -569,60 +469,83 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // ── Chips catégories ──────────────────────────────────────────────────────
   Widget _buildCategories() {
-    return SizedBox(
-      height: 38,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: _categories.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 10),
-        itemBuilder: (_, i) {
-          final selected = _selectedCategory == i;
-          return GestureDetector(
-            onTap: () => setState(() => _selectedCategory = i),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-              decoration: BoxDecoration(
-                color: selected ? AppColors.primary : AppColors.bgCard,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: selected
-                    ? [
-                        BoxShadow(
-                          color: AppColors.primary.withOpacity(0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
-                        ),
-                      ]
-                    : [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 6,
-                        ),
-                      ],
-              ),
-              child: Text(
-                _categories[i],
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: selected ? Colors.white : AppColors.textMedium,
+    return Obx(() {
+      if (_menu.categoriesLoading.value && _menu.categories.isEmpty) {
+        return SizedBox(
+          height: 38,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: 6,
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            itemBuilder: (_, __) => _shimmerChip(),
+          ),
+        );
+      }
+      final chips = [
+        'Tous',
+        ..._menu.categories.map((c) => c['name'] as String),
+      ];
+      return SizedBox(
+        height: 38,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: chips.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 10),
+          itemBuilder: (_, i) => Obx(() {
+            final sel = _menu.selectedCategoryIndex.value == i;
+            return GestureDetector(
+              onTap: () => _menu.selectCategory(i),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: sel ? AppColors.primary : AppColors.bgCard,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: sel
+                      ? [
+                          BoxShadow(
+                            color: AppColors.primary.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ]
+                      : [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 6,
+                          ),
+                        ],
+                ),
+                child: Text(
+                  chips[i],
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: sel ? Colors.white : AppColors.textMedium,
+                  ),
                 ),
               ),
-            ),
-          );
-        },
-      ),
-    );
+            );
+          }),
+        ),
+      );
+    });
   }
 
+  // ── Search bar ────────────────────────────────────────────────────────────
   Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: TextField(
         controller: _searchCtrl,
-        onChanged: (v) => setState(() => _query = v),
+        onChanged: (v) => _menu.searchQuery.value = v,
         style: const TextStyle(fontSize: 14, color: AppColors.textDark),
         decoration: InputDecoration(
           hintText: 'Rechercher un plat…',
@@ -632,19 +555,21 @@ class _HomeScreenState extends State<HomeScreen> {
             color: AppColors.primary,
             size: 20,
           ),
-          suffixIcon: _query.isNotEmpty
-              ? GestureDetector(
-                  onTap: () => setState(() {
-                    _searchCtrl.clear();
-                    _query = '';
-                  }),
-                  child: Icon(
-                    CupertinoIcons.xmark,
-                    color: AppColors.textGray,
-                    size: 18,
-                  ),
-                )
-              : null,
+          suffixIcon: Obx(
+            () => _menu.searchQuery.value.isNotEmpty
+                ? GestureDetector(
+                    onTap: () {
+                      _searchCtrl.clear();
+                      _menu.searchQuery.value = '';
+                    },
+                    child: Icon(
+                      CupertinoIcons.xmark,
+                      color: AppColors.textGray,
+                      size: 18,
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ),
           filled: true,
           fillColor: AppColors.bgCard,
           contentPadding: const EdgeInsets.symmetric(
@@ -668,30 +593,21 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildEmpty() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 40),
-      child: Center(
-        child: Column(
-          children: [
-            Icon(CupertinoIcons.search, size: 48, color: AppColors.textGray),
-            const SizedBox(height: 12),
-            Text(
-              _query.isNotEmpty
-                  ? 'Aucun résultat pour "$_query"'
-                  : 'Aucun plat dans cette catégorie',
-              style: TextStyle(fontSize: 14, color: AppColors.textGray),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
+  // ── Carte plat ────────────────────────────────────────────────────────────
+  Widget _buildDishCard(Map<String, dynamic> dish) {
+    final name = dish['name'] as String;
+    final price = double.tryParse(dish['price'].toString()) ?? 0;
+    final image = dish['image'] as String?;
+    final isAvailable =
+        dish['is_available'] == 1 || dish['is_available'] == true;
+    final slug = dish['slug'] as String;
+    final formatted = price.toInt().toString().replaceAllMapped(
+      RegExp(r'\B(?=(\d{3})+(?!\d))'), // ✅ remplace l'ancien RegExp
+      (m) => ' ',
     );
-  }
 
-  Widget _buildProductCard(Map<String, dynamic> product) {
     return GestureDetector(
-      onTap: () => Get.toNamed(AppRoutes.productDetail, arguments: product),
+      onTap: () => Get.toNamed(AppRoutes.productDetail, arguments: slug),
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.bgCard,
@@ -714,41 +630,34 @@ class _HomeScreenState extends State<HomeScreen> {
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(18),
                     ),
-                    child: Image.asset(
-                      product['image'],
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        color: AppColors.bgLight,
-                        child: Icon(
-                          CupertinoIcons.square_favorites_alt,
-                          color: AppColors.textGray,
-                          size: 40,
-                        ),
-                      ),
-                    ),
+                    // ✅ cacheWidth limite la résolution décodée → moins de RAM
+                    child: image != null
+                        ? Image.network(
+                            image,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            cacheWidth: 300,
+                            errorBuilder: (_, __, ___) => _placeholder(),
+                          )
+                        : _placeholder(),
                   ),
-                  if (product['badge'] != null)
-                    Positioned(
-                      top: 8,
-                      left: 8,
+                  if (!isAvailable)
+                    Positioned.fill(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 4,
-                        ),
                         decoration: BoxDecoration(
-                          color: product['badgeColor'],
-                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.black.withOpacity(0.45),
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(18),
+                          ),
                         ),
-                        child: Text(
-                          product['badge'],
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 9,
-                            fontWeight: FontWeight.w800,
-                            height: 1.2,
+                        child: Center(
+                          child: Text(
+                            'Indisponible',
+                            style: GoogleFonts.nunito(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ),
@@ -762,7 +671,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    product['name'],
+                    name,
                     style: GoogleFonts.nunito(
                       fontSize: 13,
                       fontWeight: FontWeight.w800,
@@ -775,33 +684,21 @@ class _HomeScreenState extends State<HomeScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '${product['price']} F',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.badgeOff,
-                            ),
-                          ),
-                          if (product['oldPrice'] != null)
-                            Text(
-                              '${product['oldPrice']} F',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: AppColors.textGray,
-                                decoration: TextDecoration.lineThrough,
-                              ),
-                            ),
-                        ],
+                      Text(
+                        '$formatted FCFA',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.badgeOff,
+                        ),
                       ),
                       Container(
                         width: 32,
                         height: 32,
                         decoration: BoxDecoration(
-                          color: AppColors.primary,
+                          color: isAvailable
+                              ? AppColors.primary
+                              : AppColors.textGray,
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: const Icon(
@@ -821,6 +718,82 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  Widget _placeholder() => Container(
+    color: AppColors.bgLight,
+    child: Center(
+      child: Icon(CupertinoIcons.photo, color: AppColors.textGray, size: 40),
+    ),
+  );
+
+  Widget _shimmerChip() => Container(
+    width: 90,
+    height: 38,
+    decoration: BoxDecoration(
+      color: AppColors.divider,
+      borderRadius: BorderRadius.circular(20),
+    ),
+  );
+
+  Widget _buildDishesLoader() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: 4,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+          childAspectRatio: 0.75,
+        ),
+        itemBuilder: (_, __) => Container(
+          decoration: BoxDecoration(
+            color: AppColors.bgCard,
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Column(
+            children: [
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.divider,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(18),
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  children: [
+                    Container(height: 12, color: AppColors.divider),
+                    const SizedBox(height: 6),
+                    Container(height: 12, width: 80, color: AppColors.divider),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmpty() => Padding(
+    padding: const EdgeInsets.only(top: 40),
+    child: Center(
+      child: Text(
+        'Aucun plat dans cette catégorie',
+        style: TextStyle(fontSize: 14, color: AppColors.textGray),
+        textAlign: TextAlign.center,
+      ),
+    ),
+  );
+
+  // ── Bottom Nav ────────────────────────────────────────────────────────────
   Widget _buildBottomNav() {
     final items = [
       {'icon': CupertinoIcons.house_fill, 'label': 'Home'},
@@ -828,7 +801,6 @@ class _HomeScreenState extends State<HomeScreen> {
       {'icon': CupertinoIcons.heart, 'label': 'Favoris'},
       {'icon': CupertinoIcons.person, 'label': 'Profil'},
     ];
-
     return Container(
       decoration: BoxDecoration(
         color: AppColors.bgCard,
@@ -847,9 +819,12 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: List.generate(items.length, (i) {
-              final selected = _selectedNav == i;
+              final sel = _selectedNav == i;
               return GestureDetector(
-                onTap: () => setState(() => _selectedNav = i),
+                onTap: () {
+                  setState(() => _selectedNav = i);
+                  if (i == 2) Get.find<FavoriteController>().fetchFavorites();
+                },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   padding: const EdgeInsets.symmetric(
@@ -857,7 +832,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: selected
+                    color: sel
                         ? AppColors.primary.withOpacity(0.12)
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(16),
@@ -867,9 +842,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Icon(
                         items[i]['icon'] as IconData,
-                        color: selected
-                            ? AppColors.primary
-                            : AppColors.textGray,
+                        color: sel ? AppColors.primary : AppColors.textGray,
                         size: 24,
                       ),
                       const SizedBox(height: 4),
@@ -877,15 +850,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         items[i]['label'] as String,
                         style: TextStyle(
                           fontSize: 11,
-                          fontWeight: selected
-                              ? FontWeight.w700
-                              : FontWeight.w500,
-                          color: selected
-                              ? AppColors.primary
-                              : AppColors.textGray,
+                          fontWeight: sel ? FontWeight.w700 : FontWeight.w500,
+                          color: sel ? AppColors.primary : AppColors.textGray,
                         ),
                       ),
-                      if (selected)
+                      if (sel)
                         Container(
                           margin: const EdgeInsets.only(top: 4),
                           width: 20,

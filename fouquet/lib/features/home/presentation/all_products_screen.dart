@@ -1,10 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fouquet/features/cart/controller/cart_controller.dart';
+import 'package:fouquet/features/home/controllers/all_products_controller.dart';
 import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:fouquet/core/navigation/app_routes.dart';
-import 'package:fouquet/core/resources/app_images.dart';
 import 'package:fouquet/core/style/colors.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AllProductsScreen extends StatefulWidget {
   const AllProductsScreen({super.key});
@@ -14,184 +15,27 @@ class AllProductsScreen extends StatefulWidget {
 }
 
 class _AllProductsScreenState extends State<AllProductsScreen> {
+  late final AllProductsController _ctrl;
   final _searchCtrl = TextEditingController();
-  String _query = '';
-  int _selectedCategory = 0;
 
-  // ── Helper Nunito ──────────────────────────────────────────────────────────
   static TextStyle _nunito({
     double size = 14,
     FontWeight weight = FontWeight.w400,
     Color? color,
     double height = 1.0,
-    double letterSpacing = 0.0,
     TextDecoration? decoration,
   }) => GoogleFonts.nunito(
     fontSize: size,
     fontWeight: weight,
     color: color,
     height: height,
-    letterSpacing: letterSpacing,
     decoration: decoration,
   );
 
-  final List<String> _categories = [
-    'Tous',
-    'Fast Food',
-    'Plats Africains',
-    'Plats Européens',
-    'Boissons',
-    'Déjeuners',
-    'Cocktails',
-    'Desserts',
-    'Cremeries',
-  ];
-
-  // ✅ 9 icônes — une par catégorie
-  final List<IconData> _catIcons = [
-    CupertinoIcons.square_grid_2x2,
-    CupertinoIcons.flame,
-    CupertinoIcons.leaf_arrow_circlepath,
-    CupertinoIcons.drop,
-    CupertinoIcons.tree,
-    CupertinoIcons.sun_max,
-    CupertinoIcons.sparkles,
-    CupertinoIcons.star,
-    CupertinoIcons.snow,
-  ];
-
-  final List<Map<String, dynamic>> _products = [
-    {
-      'name': 'King Burger',
-      'price': 4000,
-      'oldPrice': 5000,
-      'image': AppImages.viande,
-      'badge': 'TOP\nSALE',
-      'badgeColor': AppColors.badgeOff,
-      'category': 'Fast Food',
-      'rating': 4.8,
-    },
-    {
-      'name': 'Pizza Fouquet',
-      'price': 7500,
-      'oldPrice': null,
-      'image': AppImages.rizaugras,
-      'badge': '9%\nOFF',
-      'badgeColor': AppColors.badgeOff,
-      'category': 'Plats Africains',
-      'rating': 4.9,
-    },
-    {
-      'name': 'Shawarma Royal',
-      'price': 3000,
-      'oldPrice': 6000,
-      'image': AppImages.frite,
-      'badge': '9%\nOFF',
-      'badgeColor': AppColors.badgeOff,
-      'category': 'Fast Food',
-      'rating': 4.7,
-    },
-    {
-      'name': 'Salade Fouquet',
-      'price': 7500,
-      'oldPrice': null,
-      'image': AppImages.raisin,
-      'badge': 'TOP\nSALE',
-      'badgeColor': AppColors.badgeOff,
-      'category': 'Salades',
-      'rating': 4.5,
-    },
-    {
-      'name': 'Mini Burger',
-      'price': 2500,
-      'oldPrice': null,
-      'image': AppImages.viande,
-      'badge': null,
-      'badgeColor': null,
-      'category': 'Fast Food',
-      'rating': 4.3,
-    },
-    {
-      'name': 'Pizza Royale',
-      'price': 8500,
-      'oldPrice': null,
-      'image': AppImages.rizaugras,
-      'badge': null,
-      'badgeColor': null,
-      'category': 'Plats Africains',
-      'rating': 4.6,
-    },
-    {
-      'name': 'Jus de Bissap',
-      'price': 1000,
-      'oldPrice': null,
-      'image': AppImages.raisin,
-      'badge': null,
-      'badgeColor': null,
-      'category': 'Boissons',
-      'rating': 4.4,
-    },
-    {
-      'name': 'Cocktail Fouquet',
-      'price': 3500,
-      'oldPrice': null,
-      'image': AppImages.raisin,
-      'badge': 'NEW',
-      'badgeColor': AppColors.primary,
-      'category': 'Cocktails',
-      'rating': 4.8,
-    },
-    {
-      'name': 'Riz au Gras',
-      'price': 2000,
-      'oldPrice': null,
-      'image': AppImages.rizaugras,
-      'badge': null,
-      'badgeColor': null,
-      'category': 'Plats Africains',
-      'rating': 4.7,
-    },
-    {
-      'name': 'Glace Vanille',
-      'price': 1500,
-      'oldPrice': null,
-      'image': AppImages.frite,
-      'badge': null,
-      'badgeColor': null,
-      'category': 'Cremeries',
-      'rating': 4.5,
-    },
-    {
-      'name': 'Fondant Choco',
-      'price': 2000,
-      'oldPrice': null,
-      'image': AppImages.viande,
-      'badge': 'NEW',
-      'badgeColor': AppColors.primary,
-      'category': 'Desserts',
-      'rating': 4.9,
-    },
-    {
-      'name': 'Salade Caesar',
-      'price': 4500,
-      'oldPrice': 5000,
-      'image': AppImages.raisin,
-      'badge': null,
-      'badgeColor': null,
-      'category': 'Salades',
-      'rating': 4.6,
-    },
-  ];
-
-  List<Map<String, dynamic>> get _filtered {
-    final cat = _categories[_selectedCategory];
-    return _products.where((p) {
-      final matchCat = cat == 'Tous' || p['category'] == cat;
-      final matchQuery =
-          _query.isEmpty ||
-          (p['name'] as String).toLowerCase().contains(_query.toLowerCase());
-      return matchCat && matchQuery;
-    }).toList();
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = Get.put(AllProductsController());
   }
 
   @override
@@ -214,7 +58,32 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
             const SizedBox(height: 4),
             _buildResultCount(),
             const SizedBox(height: 8),
-            Expanded(child: _filtered.isEmpty ? _buildEmpty() : _buildGrid()),
+            Expanded(
+              child: NotificationListener<ScrollNotification>(
+                onNotification: (n) {
+                  if (n.metrics.pixels >= n.metrics.maxScrollExtent - 200) {
+                    _ctrl.loadMoreDishes();
+                  }
+                  return false;
+                },
+                child: Obx(() {
+                  // ✅ Loader uniquement si chargement en cours ET liste vide
+                  if (_ctrl.dishesLoading.value && _ctrl.dishes.isEmpty) {
+                    return _buildLoader();
+                  }
+
+                  final dishes = _ctrl.filteredDishes;
+
+                  // ✅ Supprimé : if (selectedCategoryIndex == 0) return _buildHint()
+                  // "Tous" charge vraiment les plats, on affiche la grille normalement
+                  if (dishes.isEmpty && !_ctrl.dishesLoading.value) {
+                    return _buildEmpty();
+                  }
+
+                  return _buildGrid(dishes);
+                }),
+              ),
+            ),
           ],
         ),
       ),
@@ -254,35 +123,37 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
               ),
             ),
           ),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Notre Menu',
-                style: _nunito(
-                  size: 20,
-                  weight: FontWeight.w800,
-                  color: AppColors.textDark,
+          Obx(
+            () => Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Notre Menu',
+                  style: _nunito(
+                    size: 20,
+                    weight: FontWeight.w800,
+                    color: AppColors.textDark,
+                  ),
                 ),
-              ),
-              Text(
-                '${_products.length} plats disponibles',
-                style: _nunito(size: 13, color: AppColors.textGray),
-              ),
-            ],
+                Text(
+                  '${_ctrl.dishes.length} plats chargés',
+                  style: _nunito(size: 13, color: AppColors.textGray),
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  // ── Barre de recherche ────────────────────────────────────────────────────
+  // ── Search bar ────────────────────────────────────────────────────────────
   Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: TextField(
         controller: _searchCtrl,
-        onChanged: (v) => setState(() => _query = v),
+        onChanged: (v) => _ctrl.searchQuery.value = v,
         style: _nunito(size: 14, color: AppColors.textDark),
         decoration: InputDecoration(
           hintText: 'Rechercher un plat…',
@@ -292,19 +163,21 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
             color: AppColors.primary,
             size: 20,
           ),
-          suffixIcon: _query.isNotEmpty
-              ? GestureDetector(
-                  onTap: () => setState(() {
-                    _searchCtrl.clear();
-                    _query = '';
-                  }),
-                  child: Icon(
-                    CupertinoIcons.xmark,
-                    color: AppColors.textGray,
-                    size: 18,
-                  ),
-                )
-              : null,
+          suffixIcon: Obx(
+            () => _ctrl.searchQuery.value.isNotEmpty
+                ? GestureDetector(
+                    onTap: () {
+                      _searchCtrl.clear();
+                      _ctrl.searchQuery.value = '';
+                    },
+                    child: Icon(
+                      CupertinoIcons.xmark,
+                      color: AppColors.textGray,
+                      size: 18,
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ),
           filled: true,
           fillColor: AppColors.bgCard,
           contentPadding: const EdgeInsets.symmetric(
@@ -330,121 +203,174 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
 
   // ── Chips catégories ──────────────────────────────────────────────────────
   Widget _buildCategoryChips() {
-    return SizedBox(
-      height: 72,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: _categories.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 10),
-        itemBuilder: (_, i) {
-          final selected = _selectedCategory == i;
-          return GestureDetector(
-            onTap: () => setState(() => _selectedCategory = i),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
+    return Obx(() {
+      if (_ctrl.categoriesLoading.value && _ctrl.categories.isEmpty) {
+        return SizedBox(
+          height: 72,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: 6,
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            itemBuilder: (_, __) => Container(
               width: 72,
+              height: 72,
               decoration: BoxDecoration(
-                color: selected ? AppColors.primary : AppColors.bgCard,
+                color: AppColors.divider,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: selected ? AppColors.primary : AppColors.divider,
-                  width: 1.5,
-                ),
-                boxShadow: selected
-                    ? [
-                        BoxShadow(
-                          color: AppColors.primary.withOpacity(0.25),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
-                        ),
-                      ]
-                    : [],
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    _catIcons[i],
-                    color: selected ? Colors.white : AppColors.primary,
-                    size: 22,
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    _categories[i],
-                    textAlign: TextAlign.center,
-                    style: _nunito(
-                      size: 10,
-                      weight: FontWeight.w600,
-                      color: selected ? Colors.white : AppColors.textMedium,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
               ),
             ),
-          );
-        },
-      ),
-    );
+          ),
+        );
+      }
+      final chips = [
+        'Tous',
+        ..._ctrl.categories.map((c) => c['name'] as String),
+      ];
+      return SizedBox(
+        height: 72,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: chips.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 10),
+          itemBuilder: (_, i) => Obx(() {
+            final sel = _ctrl.selectedCategoryIndex.value == i;
+            return GestureDetector(
+              onTap: () => _ctrl.selectCategory(i),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: 72,
+                decoration: BoxDecoration(
+                  color: sel ? AppColors.primary : AppColors.bgCard,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: sel ? AppColors.primary : AppColors.divider,
+                    width: 1.5,
+                  ),
+                  boxShadow: sel
+                      ? [
+                          BoxShadow(
+                            color: AppColors.primary.withOpacity(0.25),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ]
+                      : [],
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      i == 0
+                          ? CupertinoIcons.square_grid_2x2
+                          : CupertinoIcons.tag,
+                      color: sel ? Colors.white : AppColors.primary,
+                      size: 22,
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      chips[i],
+                      textAlign: TextAlign.center,
+                      style: _nunito(
+                        size: 10,
+                        weight: FontWeight.w600,
+                        color: sel ? Colors.white : AppColors.textMedium,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+        ),
+      );
+    });
   }
 
   // ── Compteur résultats ────────────────────────────────────────────────────
   Widget _buildResultCount() {
-    final count = _filtered.length;
-    final cat = _categories[_selectedCategory];
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: [
-          Text(
-            '$count plat${count > 1 ? 's' : ''}${cat != 'Tous' ? ' · $cat' : ''}',
-            style: _nunito(
-              size: 13,
-              weight: FontWeight.w600,
-              color: AppColors.textGray,
-            ),
-          ),
-          if (_query.isNotEmpty) ...[
+    return Obx(() {
+      final count = _ctrl.filteredDishes.length;
+      final catIdx = _ctrl.selectedCategoryIndex.value;
+      final catName = catIdx == 0
+          ? 'Tous'
+          : _ctrl.categories[catIdx - 1]['name'] as String;
+      final q = _ctrl.searchQuery.value;
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
             Text(
-              ' pour "',
-              style: _nunito(size: 13, color: AppColors.textGray),
-            ),
-            Text(
-              _query,
+              '$count plat${count > 1 ? 's' : ''}',
               style: _nunito(
                 size: 13,
-                weight: FontWeight.w700,
-                color: AppColors.primary,
+                weight: FontWeight.w600,
+                color: AppColors.textGray,
               ),
             ),
-            Text('"', style: _nunito(size: 13, color: AppColors.textGray)),
+            if (catName != 'Tous')
+              Text(
+                ' · $catName',
+                style: _nunito(size: 13, color: AppColors.textGray),
+              ),
+            if (q.isNotEmpty) ...[
+              Text(
+                ' pour "',
+                style: _nunito(size: 13, color: AppColors.textGray),
+              ),
+              Text(
+                q,
+                style: _nunito(
+                  size: 13,
+                  weight: FontWeight.w700,
+                  color: AppColors.primary,
+                ),
+              ),
+              Text('"', style: _nunito(size: 13, color: AppColors.textGray)),
+            ],
           ],
-        ],
-      ),
-    );
+        ),
+      );
+    });
   }
 
-  // ── Grille produits ───────────────────────────────────────────────────────
-  Widget _buildGrid() {
+  // ── Grille ────────────────────────────────────────────────────────────────
+  Widget _buildGrid(List<Map<String, dynamic>> dishes) {
     return GridView.builder(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 30),
-      itemCount: _filtered.length,
+      itemCount: dishes.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         mainAxisSpacing: 16,
         crossAxisSpacing: 16,
         childAspectRatio: 0.72,
       ),
-      itemBuilder: (_, i) => _buildProductCard(_filtered[i]),
+      itemBuilder: (_, i) => _buildDishCard(dishes[i]),
     );
   }
 
-  // ── Carte produit ─────────────────────────────────────────────────────────
-  Widget _buildProductCard(Map<String, dynamic> product) {
+  // ── Carte plat ────────────────────────────────────────────────────────────
+  Widget _buildDishCard(Map<String, dynamic> dish) {
+    final name = dish['name'] as String;
+    final price = double.tryParse(dish['price'].toString()) ?? 0;
+    final image = dish['image'] as String?;
+    final isAvailable =
+        dish['is_available'] == 1 || dish['is_available'] == true;
+    final slug = dish['slug'] as String;
+
+    // ✅ Catégorie du plat lui-même, pas de la sélection courante
+    final catName = dish['category']?['name'] as String? ?? '';
+
+    final formatted = price.toInt().toString().replaceAllMapped(
+      RegExp(r'\B(?=(\d{3})+(?!\d))'), // ✅ remplace l'ancien RegExp
+      (m) => ' ',
+    );
+
     return GestureDetector(
-      onTap: () => Get.toNamed(AppRoutes.productDetail, arguments: product),
+      onTap: () => Get.toNamed(AppRoutes.productDetail, arguments: slug),
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.bgCard,
@@ -467,78 +393,36 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(18),
                     ),
-                    child: Image.asset(
-                      product['image'],
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        color: AppColors.bgLight,
-                        child: Icon(
-                          CupertinoIcons.photo,
-                          color: AppColors.textGray,
-                          size: 40,
-                        ),
-                      ),
-                    ),
+                    child: image != null
+                        ? Image.network(
+                            image,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => _placeholder(),
+                          )
+                        : _placeholder(),
                   ),
-                  if (product['badge'] != null)
-                    Positioned(
-                      top: 8,
-                      left: 8,
+                  if (!isAvailable)
+                    Positioned.fill(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 4,
-                        ),
                         decoration: BoxDecoration(
-                          color: product['badgeColor'],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          product['badge'],
-                          textAlign: TextAlign.center,
-                          style: _nunito(
-                            size: 9,
-                            weight: FontWeight.w800,
-                            color: Colors.white,
-                            height: 1.2,
+                          color: Colors.black.withOpacity(0.45),
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(18),
                           ),
                         ),
-                      ),
-                    ),
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.55),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            CupertinoIcons.star_fill,
-                            color: AppColors.star,
-                            size: 10,
-                          ),
-                          const SizedBox(width: 3),
-                          Text(
-                            '${product['rating']}',
+                        child: Center(
+                          child: Text(
+                            'Indisponible',
                             style: _nunito(
-                              size: 10,
+                              size: 12,
                               weight: FontWeight.w700,
                               color: Colors.white,
                             ),
                           ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),
@@ -548,7 +432,7 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    product['name'],
+                    name,
                     style: _nunito(
                       size: 13,
                       weight: FontWeight.w800,
@@ -558,47 +442,56 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    product['category'],
-                    style: _nunito(size: 11, color: AppColors.textGray),
-                  ),
+                  if (catName.isNotEmpty)
+                    Text(
+                      catName,
+                      style: _nunito(size: 11, color: AppColors.textGray),
+                    ),
                   const SizedBox(height: 6),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '${product['price']} F',
-                            style: _nunito(
-                              size: 14,
-                              weight: FontWeight.w800,
-                              color: AppColors.badgeOff,
-                            ),
-                          ),
-                          if (product['oldPrice'] != null)
-                            Text(
-                              '${product['oldPrice']} F',
-                              style: _nunito(
-                                size: 11,
-                                color: AppColors.textGray,
-                                decoration: TextDecoration.lineThrough,
-                              ),
-                            ),
-                        ],
-                      ),
-                      Container(
-                        width: 30,
-                        height: 30,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(10),
+                      Text(
+                        '$formatted FCFA',
+                        style: _nunito(
+                          size: 14,
+                          weight: FontWeight.w800,
+                          color: AppColors.badgeOff,
                         ),
-                        child: const Icon(
-                          CupertinoIcons.cart_badge_plus,
-                          color: Colors.white,
-                          size: 15,
+                      ),
+                      GestureDetector(
+                        onTap: isAvailable
+                            ? () async {
+                                final disheId = dish['id'] as String?;
+                                if (disheId == null) return;
+                                final cartCtrl = Get.put(CartController());
+                                await cartCtrl.addItem(disheId: disheId);
+                                Get.snackbar(
+                                  'Panier ✓',
+                                  '$name ajouté au panier !',
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: AppColors.primary,
+                                  colorText: Colors.white,
+                                  margin: const EdgeInsets.all(16),
+                                  borderRadius: 16,
+                                  duration: const Duration(seconds: 2),
+                                );
+                              }
+                            : null,
+                        child: Container(
+                          width: 30,
+                          height: 30,
+                          decoration: BoxDecoration(
+                            color: isAvailable
+                                ? AppColors.primary
+                                : AppColors.textGray,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(
+                            CupertinoIcons.cart_badge_plus,
+                            color: Colors.white,
+                            size: 15,
+                          ),
                         ),
                       ),
                     ],
@@ -612,39 +505,83 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
     );
   }
 
-  // ── État vide ─────────────────────────────────────────────────────────────
-  Widget _buildEmpty() {
-    return Center(
+  Widget _placeholder() => Container(
+    color: AppColors.bgLight,
+    child: Center(
+      child: Icon(CupertinoIcons.photo, color: AppColors.textGray, size: 40),
+    ),
+  );
+
+  Widget _buildLoader() => GridView.builder(
+    padding: const EdgeInsets.fromLTRB(16, 8, 16, 30),
+    itemCount: 6,
+    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      crossAxisCount: 2,
+      mainAxisSpacing: 16,
+      crossAxisSpacing: 16,
+      childAspectRatio: 0.72,
+    ),
+    itemBuilder: (_, __) => Container(
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(18),
+      ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(CupertinoIcons.search, size: 52, color: AppColors.textGray),
-          const SizedBox(height: 16),
-          Text(
-            _query.isNotEmpty
-                ? 'Aucun résultat pour "$_query"'
-                : 'Aucun plat dans cette catégorie',
-            style: _nunito(size: 14, color: AppColors.textGray),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          GestureDetector(
-            onTap: () => setState(() {
-              _selectedCategory = 0;
-              _searchCtrl.clear();
-              _query = '';
-            }),
-            child: Text(
-              'Voir tous les plats',
-              style: _nunito(
-                size: 13,
-                weight: FontWeight.w700,
-                color: AppColors.primary,
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.divider,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(18),
+                ),
               ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(10),
+            child: Column(
+              children: [
+                Container(height: 12, color: AppColors.divider),
+                const SizedBox(height: 6),
+                Container(height: 12, width: 80, color: AppColors.divider),
+              ],
             ),
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+
+  Widget _buildEmpty() => Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(CupertinoIcons.search, size: 52, color: AppColors.textGray),
+        const SizedBox(height: 16),
+        Text(
+          _ctrl.searchQuery.value.isNotEmpty
+              ? 'Aucun résultat pour "${_ctrl.searchQuery.value}"'
+              : 'Aucun plat dans cette catégorie',
+          style: _nunito(size: 14, color: AppColors.textGray),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 8),
+        GestureDetector(
+          onTap: () {
+            _searchCtrl.clear();
+            _ctrl.resetFilters();
+          },
+          child: Text(
+            'Réinitialiser',
+            style: _nunito(
+              size: 13,
+              weight: FontWeight.w700,
+              color: AppColors.primary,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
 }

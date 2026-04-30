@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fouquet/features/profile/controller/order_history_controller.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:fouquet/core/resources/app_images.dart';
 import 'package:fouquet/core/style/colors.dart';
 
 class OrderHistoryScreen extends StatefulWidget {
@@ -16,7 +16,11 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabCtrl;
 
-  final _tabs = ['Tous', 'En cours', 'Livré', 'Annulé'];
+  // Les labels correspondent aux valeurs `status_label` renvoyées par l'API
+  // plus "Tous" pour tout afficher.
+  final _tabs = ['Tous', 'Confirmé', 'En attente', 'Annulé', 'Livré'];
+
+  final OrderHistoryController _ctrl = Get.put(OrderHistoryController());
 
   // ── Helper Nunito ──────────────────────────────────────────────────────────
   static TextStyle _nunito({
@@ -32,55 +36,6 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
     height: height,
     letterSpacing: letterSpacing,
   );
-
-  final List<Map<String, dynamic>> _orders = [
-    {
-      'id': '#FQ-2401',
-      'date': '12 Mar 2026 · 14:32',
-      'items': ['King Burger x1', 'Pizza Fouquet x2'],
-      'total': 19000,
-      'status': 'Livré',
-      'image': AppImages.viande,
-    },
-    {
-      'id': '#FQ-2398',
-      'date': '10 Mar 2026 · 19:10',
-      'items': ['Shawarma Royal x1'],
-      'total': 3000,
-      'status': 'Annulé',
-      'image': AppImages.frite,
-    },
-    {
-      'id': '#FQ-2395',
-      'date': '09 Mar 2026 · 12:05',
-      'items': ['Salade Fouquet x1', 'King Burger x1'],
-      'total': 11500,
-      'status': 'En cours',
-      'image': AppImages.raisin,
-    },
-    {
-      'id': '#FQ-2390',
-      'date': '07 Mar 2026 · 20:48',
-      'items': ['Pizza Fouquet x1'],
-      'total': 7500,
-      'status': 'Livré',
-      'image': AppImages.rizaugras,
-    },
-    {
-      'id': '#FQ-2385',
-      'date': '05 Mar 2026 · 13:22',
-      'items': ['King Burger x2', 'Shawarma Royal x1'],
-      'total': 11000,
-      'status': 'Livré',
-      'image': AppImages.viande,
-    },
-  ];
-
-  List<Map<String, dynamic>> get _filtered {
-    final tab = _tabs[_tabCtrl.index];
-    if (tab == 'Tous') return _orders;
-    return _orders.where((o) => o['status'] == tab).toList();
-  }
 
   @override
   void initState() {
@@ -106,20 +61,83 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
             const SizedBox(height: 16),
             _buildTabs(),
             const SizedBox(height: 16),
-            Expanded(
-              child: _filtered.isEmpty
-                  ? _buildEmpty()
-                  : ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 30),
-                      itemCount: _filtered.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 14),
-                      itemBuilder: (_, i) => _buildOrderCard(_filtered[i]),
-                    ),
-            ),
+            Expanded(child: _buildBody()),
           ],
         ),
       ),
     );
+  }
+
+  // ── Body (loading / error / liste) ────────────────────────────────────────
+  Widget _buildBody() {
+    return Obx(() {
+      if (_ctrl.isLoading.value) {
+        return const Center(
+          child: CircularProgressIndicator(color: AppColors.badgeOff),
+        );
+      }
+
+      if (_ctrl.hasError.value) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                CupertinoIcons.wifi_slash,
+                size: 48,
+                color: AppColors.textGray,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Impossible de charger les commandes',
+                style: _nunito(
+                  size: 15,
+                  weight: FontWeight.w600,
+                  color: AppColors.textMedium,
+                ),
+              ),
+              const SizedBox(height: 16),
+              GestureDetector(
+                onTap: _ctrl.fetchOrderHistory,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.badgeOff,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    'Réessayer',
+                    style: _nunito(
+                      size: 13,
+                      weight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+
+      final filtered = _ctrl.filteredOrders(_tabs[_tabCtrl.index]);
+
+      if (filtered.isEmpty) return _buildEmpty();
+
+      return RefreshIndicator(
+        color: AppColors.badgeOff,
+        onRefresh: _ctrl.fetchOrderHistory,
+        child: ListView.separated(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 30),
+          itemCount: filtered.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 14),
+          itemBuilder: (_, i) => _buildOrderCard(filtered[i]),
+        ),
+      );
+    });
   }
 
   // ── AppBar ────────────────────────────────────────────────────────────────
@@ -163,18 +181,20 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
               ),
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.secondary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              '${_orders.length} commandes',
-              style: _nunito(
-                size: 12,
-                weight: FontWeight.w700,
-                color: AppColors.secondary,
+          Obx(
+            () => Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.secondary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                '${_ctrl.totalOrders.value} commandes',
+                style: _nunito(
+                  size: 12,
+                  weight: FontWeight.w700,
+                  color: AppColors.secondary,
+                ),
               ),
             ),
           ),
@@ -228,8 +248,18 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
 
   // ── Carte commande ────────────────────────────────────────────────────────
   Widget _buildOrderCard(Map<String, dynamic> order) {
-    final status = order['status'] as String;
+    final status = order['status'] as String? ?? '';
+    final statusLabel = order['status_label'] as String? ?? status;
     final statusColor = _statusColor(status);
+    final reference = order['reference'] as String? ?? order['id'] ?? '—';
+    final date = order['date'] as String? ?? '';
+    final time = order['time'] as String? ?? '';
+    final items = order['items'] as String? ?? '';
+    final total = order['total'] as String? ?? '0.00';
+    final actions = (order['actions'] as List?) ?? [];
+
+    // Affiche la date et l'heure sur la même ligne
+    final dateTime = [date, time].where((s) => s.isNotEmpty).join(' · ');
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -248,22 +278,18 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
         children: [
           Row(
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.asset(
-                  order['image'],
-                  width: 70,
-                  height: 70,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    width: 70,
-                    height: 70,
-                    color: AppColors.bgLight,
-                    child: const Icon(
-                      CupertinoIcons.photo,
-                      color: AppColors.textGray,
-                    ),
-                  ),
+              // Placeholder image (l'API renvoie image: null pour l'instant)
+              Container(
+                width: 70,
+                height: 70,
+                decoration: BoxDecoration(
+                  color: AppColors.bgLight,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  CupertinoIcons.bag,
+                  color: AppColors.textGray,
+                  size: 30,
                 ),
               ),
               const SizedBox(width: 12),
@@ -275,24 +301,24 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          order['id'],
+                          reference,
                           style: _nunito(
                             size: 14,
                             weight: FontWeight.w800,
                             color: AppColors.textDark,
                           ),
                         ),
-                        _buildStatusBadge(status, statusColor),
+                        _buildStatusBadge(statusLabel, statusColor),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      order['date'],
+                      dateTime,
                       style: _nunito(size: 12, color: AppColors.textGray),
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      (order['items'] as List).join(' · '),
+                      items,
                       style: _nunito(size: 12, color: AppColors.textMedium),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -316,7 +342,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
                     style: _nunito(size: 12, color: AppColors.textGray),
                   ),
                   Text(
-                    '${order['total']} F CFA',
+                    '$total F CFA',
                     style: _nunito(
                       size: 16,
                       weight: FontWeight.w800,
@@ -325,33 +351,29 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
                   ),
                 ],
               ),
+              // Boutons d'action provenant de l'API (liste d'actions dynamique)
               Row(
                 children: [
-                  if (status == 'Livré')
-                    _actionBtn(
-                      label: 'Reorder',
-                      color: AppColors.textGray,
-                      onTap: () {},
-                    ),
-                  if (status == 'En cours') ...[
-                    _actionBtn(
-                      label: 'Suivre',
-                      color: AppColors.primary,
-                      onTap: () {},
-                    ),
-                    const SizedBox(width: 8),
-                    _actionBtn(
-                      label: 'Annuler',
-                      color: AppColors.secondary,
-                      onTap: () {},
-                    ),
-                  ],
-                  if (status == 'Annulé')
-                    _actionBtn(
-                      label: 'Reorder',
-                      color: AppColors.textGray,
-                      onTap: () {},
-                    ),
+                  if (actions.isNotEmpty)
+                    ...actions.map<Widget>((action) {
+                      final label = action['label'] as String? ?? '';
+                      final actionColor = _actionColor(
+                        action['type'] as String? ?? '',
+                      );
+                      return Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: _actionBtn(
+                          label: label,
+                          color: actionColor,
+                          onTap: () {
+                            // TODO: implémenter les actions dynamiques
+                          },
+                        ),
+                      );
+                    }).toList()
+                  else
+                    // Fallback si l'API ne renvoie pas d'actions
+                    ..._fallbackActions(status),
                 ],
               ),
             ],
@@ -361,8 +383,30 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
     );
   }
 
+  // ── Actions de repli (basées sur le status brut) ──────────────────────────
+  List<Widget> _fallbackActions(String status) {
+    if (status == 'delivered' || status == 'confirmed') {
+      return [
+        _actionBtn(label: 'Reorder', color: AppColors.textGray, onTap: () {}),
+      ];
+    }
+    if (status == 'pending') {
+      return [
+        _actionBtn(label: 'Suivre', color: AppColors.primary, onTap: () {}),
+        const SizedBox(width: 8),
+        _actionBtn(label: 'Annuler', color: AppColors.secondary, onTap: () {}),
+      ];
+    }
+    if (status == 'cancelled') {
+      return [
+        _actionBtn(label: 'Reorder', color: AppColors.textGray, onTap: () {}),
+      ];
+    }
+    return [];
+  }
+
   // ── Badge statut ──────────────────────────────────────────────────────────
-  Widget _buildStatusBadge(String status, Color color) {
+  Widget _buildStatusBadge(String label, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
@@ -379,7 +423,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
           ),
           const SizedBox(width: 5),
           Text(
-            status,
+            label,
             style: _nunito(size: 11, weight: FontWeight.w700, color: color),
           ),
         ],
@@ -410,14 +454,31 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen>
     );
   }
 
+  // ── Couleur selon status brut ─────────────────────────────────────────────
   Color _statusColor(String status) {
     switch (status) {
-      case 'Livré':
+      case 'delivered':
         return const Color(0xFF22C55E);
-      case 'En cours':
+      case 'confirmed':
+        return const Color(0xFF22C55E);
+      case 'pending':
         return Colors.blueAccent;
-      case 'Annulé':
+      case 'cancelled':
         return AppColors.secondary;
+      default:
+        return AppColors.textGray;
+    }
+  }
+
+  // ── Couleur selon type d'action ───────────────────────────────────────────
+  Color _actionColor(String type) {
+    switch (type) {
+      case 'track':
+        return AppColors.primary;
+      case 'cancel':
+        return AppColors.secondary;
+      case 'reorder':
+        return AppColors.textGray;
       default:
         return AppColors.textGray;
     }

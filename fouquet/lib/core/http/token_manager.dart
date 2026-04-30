@@ -10,7 +10,6 @@ class TokenManager {
   static const _userRoleKey = 'USER_ROLE';
   static const _userPhoneKey = 'USER_PHONE';
   static const _createdAtKey = 'CREATED_AT';
-  static const _hasSubscriptionKey = 'HAS_SUBSCRIPTION';
 
   final Talker _talker = Talker();
 
@@ -149,28 +148,6 @@ class TokenManager {
     }
   }
 
-  /// Sauvegarder le statut d'abonnement
-  Future<void> saveSubscriptionStatus(bool isActive) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(_hasSubscriptionKey, isActive);
-      _talker.info("💾 Statut abonnement sauvegardé: $isActive");
-    } catch (e) {
-      _talker.error("❌ Erreur sauvegarde statut abonnement: $e");
-    }
-  }
-
-  /// Vérifier si l'utilisateur a un abonnement actif
-  Future<bool> hasActiveSubscription() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      return prefs.getBool(_hasSubscriptionKey) ?? false;
-    } catch (e) {
-      _talker.error("❌ Erreur récupération statut abonnement: $e");
-      return false;
-    }
-  }
-
   /// Nettoyer tous les tokens et infos
   Future<void> clearTokens() async {
     try {
@@ -183,7 +160,6 @@ class TokenManager {
       await prefs.remove(_userRoleKey);
       await prefs.remove(_userPhoneKey);
       await prefs.remove(_createdAtKey);
-      await prefs.remove(_hasSubscriptionKey);
       _talker.info("🗑️ Tokens et infos utilisateur nettoyés avec succès");
     } catch (e) {
       _talker.error("❌ Erreur lors du nettoyage des tokens: $e");

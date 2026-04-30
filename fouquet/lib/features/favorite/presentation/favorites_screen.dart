@@ -1,9 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:fouquet/core/navigation/app_routes.dart';
-import 'package:fouquet/core/resources/app_images.dart';
 import 'package:fouquet/core/style/colors.dart';
+import 'package:fouquet/features/favorite/controller/favorite_controller.dart';
+import 'package:fouquet/features/home/controllers/home_controller.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class FavoritesScreen extends StatefulWidget {
@@ -15,55 +16,12 @@ class FavoritesScreen extends StatefulWidget {
 }
 
 class _FavoritesScreenState extends State<FavoritesScreen> {
-  final List<Map<String, dynamic>> _favorites = [
-    {
-      'name': 'King Burger',
-      'desc': 'Viande, œuf, fromage, laitue',
-      'price': 4000,
-      'image': AppImages.frite,
-      'rating': 4.8,
-    },
-    {
-      'name': 'Pizza Fouquet',
-      'desc': 'Poulet fumé, champignon, mozza',
-      'price': 7500,
-      'image': AppImages.raisin,
-      'rating': 4.9,
-    },
-    {
-      'name': 'Shawarma Royal',
-      'desc': 'Poulet, crevette, laitue, oignon',
-      'price': 3000,
-      'image': AppImages.viande,
-      'rating': 4.7,
-    },
-    {
-      'name': 'Panini Fouquet',
-      'desc': 'Jambon, emmental, moza, tomate',
-      'price': 4000,
-      'image': AppImages.rizaugras,
-      'rating': 4.5,
-    },
-  ];
+  late final FavoriteController ctrl;
 
-  void _removeFavorite(int i) => setState(() => _favorites.removeAt(i));
-
-  void _addToCart(String name) {
-    Get.snackbar(
-      'Ajouté au panier ✓',
-      '$name a été ajouté à votre panier avec succès.',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: AppColors.primary,
-      colorText: Colors.white,
-      borderRadius: 14,
-      margin: const EdgeInsets.all(16),
-      duration: const Duration(seconds: 2),
-      icon: const Icon(
-        CupertinoIcons.shopping_cart,
-        color: Colors.white,
-        size: 20,
-      ),
-    );
+  @override
+  void initState() {
+    super.initState();
+    ctrl = Get.find<FavoriteController>();
   }
 
   @override
@@ -71,21 +29,30 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     return Scaffold(
       backgroundColor: AppColors.bgLight,
       body: SafeArea(
-        child: Column(
-          children: [
-            _buildAppBar(),
-            Expanded(
-              child: _favorites.isEmpty
-                  ? _buildEmpty()
-                  : ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 30),
-                      itemCount: _favorites.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 14),
-                      itemBuilder: (_, i) => _buildFavoriteCard(i),
-                    ),
-            ),
-          ],
-        ),
+        child: Obx(() {
+          return Column(
+            children: [
+              _buildAppBar(),
+              Expanded(
+                child: ctrl.isLoading.value
+                    ? const Center(child: CircularProgressIndicator())
+                    : ctrl.favorites.isEmpty
+                    ? _buildEmpty()
+                    : RefreshIndicator(
+                        onRefresh: ctrl.fetchFavorites,
+                        color: AppColors.primary,
+                        child: ListView.separated(
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 30),
+                          itemCount: ctrl.favorites.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 14),
+                          itemBuilder: (_, i) => _buildFavoriteCard(i),
+                        ),
+                      ),
+              ),
+            ],
+          );
+        }),
       ),
     );
   }
@@ -136,7 +103,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 ),
               ),
               Text(
-                '${_favorites.length} plat${_favorites.length > 1 ? 's' : ''}',
+                '${ctrl.favorites.length} article${ctrl.favorites.length > 1 ? 's' : ''}',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 13, color: AppColors.textGray),
               ),
@@ -148,11 +115,45 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   }
 
   Widget _buildFavoriteCard(int i) {
-    final item = _favorites[i];
+    final item = ctrl.favorites[i];
+    final name = item['name'] as String;
+    final ingredients = item['ingredients'] as String? ?? '';
+    final price = double.tryParse(item['price'].toString()) ?? 0;
+    final rating = (item['rating'] as num?)?.toDouble() ?? 0.0;
+    final image = item['image'] as String?;
+    final disheId = item['dishe_id'] as String;
+
+    final formatted = price.toInt().toString().replaceAllMapped(
+      RegExp(r'(\d)(?=(\d{3})+$)'),
+      (m) => '${m[1]} ',
+    );
+
+    // ✅ Cherche le slug dans allDishes via dishe_id
+    void navigateToDetail() {
+      final homeCtrl = Get.find<HomeController>();
+      final dish = homeCtrl.allDishes.firstWhereOrNull(
+        (d) => d['id'] == disheId,
+      );
+      if (dish != null) {
+        Get.toNamed(AppRoutes.productDetail, arguments: dish['slug']);
+      } else {
+        // Fallback — si le plat n'est pas en mémoire
+        Get.snackbar(
+          'Erreur',
+          'Impossible d\'ouvrir ce plat pour le moment.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          margin: const EdgeInsets.all(16),
+          borderRadius: 14,
+        );
+      }
+    }
+
     return Dismissible(
-      key: Key('fav-$i-${item['name']}'),
+      key: Key('fav-${item['favorite_id']}'),
       direction: DismissDirection.endToStart,
-      onDismissed: (_) => _removeFavorite(i),
+      onDismissed: (_) => ctrl.removeFavorite(i),
       background: Container(
         decoration: BoxDecoration(
           color: AppColors.secondary,
@@ -167,7 +168,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         ),
       ),
       child: GestureDetector(
-        onTap: () => Get.toNamed(AppRoutes.productDetail, arguments: item),
+        onTap: navigateToDetail, // ✅ navigation correcte
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
@@ -184,37 +185,31 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // ── Image ──────────────────────────────────────────────────────
               ClipRRect(
                 borderRadius: BorderRadius.circular(14),
-                child: Image.asset(
-                  item['image'],
-                  width: 85,
-                  height: 85,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    width: 85,
-                    height: 85,
-                    color: AppColors.bgLight,
-                    child: const Icon(
-                      CupertinoIcons.photo,
-                      color: AppColors.textGray,
-                      size: 30,
-                    ),
-                  ),
-                ),
+                child: image != null
+                    ? Image.network(
+                        image,
+                        width: 85,
+                        height: 85,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => _imgPlaceholder(),
+                      )
+                    : _imgPlaceholder(),
               ),
               const SizedBox(width: 14),
+              // ── Infos ──────────────────────────────────────────────────────
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ✅ nom + cœur sur la même ligne, cœur à droite
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Expanded(
                           child: Text(
-                            item['name'],
+                            name,
                             style: GoogleFonts.nunito(
                               fontSize: 15,
                               fontWeight: FontWeight.w800,
@@ -225,7 +220,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                           ),
                         ),
                         GestureDetector(
-                          onTap: () => _removeFavorite(i),
+                          onTap: () => ctrl.removeFavorite(i),
                           child: Icon(
                             CupertinoIcons.heart_fill,
                             color: AppColors.secondary,
@@ -236,7 +231,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      item['desc'],
+                      ingredients,
                       style: TextStyle(fontSize: 12, color: AppColors.textGray),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -246,7 +241,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '${item['price']} F',
+                          '$formatted FCFA',
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w800,
@@ -262,7 +257,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                             ),
                             const SizedBox(width: 3),
                             Text(
-                              '${item['rating']}',
+                              rating.toStringAsFixed(1),
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
@@ -271,7 +266,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                             ),
                             const SizedBox(width: 10),
                             GestureDetector(
-                              onTap: () => _addToCart(item['name']),
+                              onTap: () => ctrl.addToCart(disheId, name),
                               child: Container(
                                 width: 32,
                                 height: 32,
@@ -355,4 +350,15 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       ),
     );
   }
+
+  Widget _imgPlaceholder() => Container(
+    width: 85,
+    height: 85,
+    color: AppColors.bgLight,
+    child: const Icon(
+      CupertinoIcons.photo,
+      color: AppColors.textGray,
+      size: 30,
+    ),
+  );
 }

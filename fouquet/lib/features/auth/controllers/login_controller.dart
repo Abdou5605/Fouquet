@@ -4,9 +4,6 @@ import 'package:get/get.dart';
 import '../service/auth_api_service.dart';
 
 class LoginController extends GetxController {
-  // ─── Controllers des champs ───────────────────────────
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
   // ─── États ────────────────────────────────────────────
@@ -32,14 +29,14 @@ class LoginController extends GetxController {
   }
 
   // ─── Login ────────────────────────────────────────────
-  Future<void> login() async {
+  Future<void> login({required String email, required String password}) async {
     if (!formKey.currentState!.validate()) return;
 
     isLoading.value = true;
 
     final success = await AuthApiService.login(
-      email: emailController.text.trim(),
-      password: passwordController.text,
+      email: email.trim(),
+      password: password,
     );
 
     isLoading.value = false;
@@ -49,17 +46,8 @@ class LoginController extends GetxController {
     }
   }
 
-  // ─── Navigation forgot password ───────────────────────
   void goToForgotPassword() => Get.toNamed(AppRoutes.forgotPassword);
-
-  // ─── Navigation register ──────────────────────────────
   void goToRegister() => Get.toNamed(AppRoutes.register);
 
-  // ─── Nettoyage ────────────────────────────────────────
-  @override
-  void onClose() {
-    emailController.dispose();
-    passwordController.dispose();
-    super.onClose();
-  }
+  // Plus besoin de dispose() ici
 }

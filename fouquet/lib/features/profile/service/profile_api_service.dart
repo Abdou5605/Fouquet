@@ -7,14 +7,13 @@ class ProfileApiService {
 
   static final HttpClient _client = HttpClient();
 
-  // ─── Récupérer le profil ───────────────────────────────
+  // ─── Récupérer le profil ──────────────────────────────
   static Future<Map<String, dynamic>?> getProfile() async {
     try {
       final Response response = await _client.get(
         '/auth/me',
         options: Options(extra: {'requiresAuth': true}),
       );
-
       if (response.data['success'] == true) {
         return response.data['data']['user'];
       }
@@ -35,13 +34,12 @@ class ProfileApiService {
       final Response response = await _client.put(
         '/auth/profile',
         data: {
-          'firstname': firstname,
-          'lastname':  lastname,
-          'address':   address,
+          'first_name': firstname,
+          'last_name': lastname,
+          'address': address,
         },
         options: Options(extra: {'requiresAuth': true}),
       );
-
       if (response.data['success'] == true) {
         return response.data['data']['user'];
       }
@@ -59,15 +57,12 @@ class ProfileApiService {
     try {
       final Response response = await _client.uploadFile(
         '/auth/avatar',
-        filePath:  filePath,
+        filePath: filePath,
         fieldName: 'avatar',
         options: Options(extra: {'requiresAuth': true}),
       );
-
       if (response.data['success'] == true) {
-        showSuccessToast(
-          response.data['message'] ?? 'Avatar mis à jour.',
-        );
+        showSuccessToast(response.data['message'] ?? 'Avatar mis à jour.');
         return response.data['data']['user'];
       }
       return null;
@@ -84,11 +79,8 @@ class ProfileApiService {
         '/auth/avatar',
         options: Options(extra: {'requiresAuth': true}),
       );
-
       if (response.data['success'] == true) {
-        showSuccessToast(
-          response.data['message'] ?? 'Avatar supprimé.',
-        );
+        showSuccessToast(response.data['message'] ?? 'Avatar supprimé.');
         return response.data['data']['user'];
       }
       return null;
@@ -98,12 +90,32 @@ class ProfileApiService {
     }
   }
 
+  // ─── Supprimer le compte ──────────────────────────────
+  static Future<bool> deleteAccount({required String password}) async {
+    try {
+      final Response response = await _client.delete(
+        '/auth/delete-account',
+        data: {'password': password},
+        options: Options(extra: {'requiresAuth': true}),
+      );
+      if (response.data['success'] == true) {
+        return true;
+      }
+      return false;
+    } on DioException catch (e) {
+      _handleError(e);
+      return false;
+    }
+  }
+
   // ─── Gestion des erreurs ──────────────────────────────
   static void _handleError(DioException e) {
+    if (e.response?.statusCode == 404) return;
     final data = e.response?.data;
+    final message = (data is Map) ? data['message'] : null;
     showErrorToast(
       'Erreur',
-      description: data?['message'] ?? 'Une erreur est survenue.',
+      description: message ?? 'Une erreur est survenue.',
     );
   }
 }

@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:fouquet/core/http/http_client.dart'; // ✅ import manquant
 import 'package:fouquet/core/http/token_manager.dart';
+import 'package:fouquet/core/navigation/app_routes.dart';
 import 'package:fouquet/core/presentation/toast.dart';
+import 'package:fouquet/features/auth/controllers/login_controller.dart';
 import 'package:get/get.dart' hide Response, FormData, MultipartFile;
 
 class AuthApiService {
@@ -24,8 +26,8 @@ class AuthApiService {
       final Response response = await _client.post(
         '/auth/register',
         data: {
-          'firstname': firstname,
-          'lastname': lastname,
+          'first_name': firstname,
+          'last_name': lastname,
           'email': email,
           'phone': phone,
           'address': address,
@@ -231,7 +233,10 @@ class AuthApiService {
   // ─── Logout ───────────────────────────────────────────
   static Future<void> logout() async {
     await _tokenManager.clearTokens();
-    Get.offAllNamed('/login');
+    // ✅ Supprime et recrée proprement le LoginController avant de naviguer
+    Get.delete<LoginController>(force: true);
+
+    Get.offAllNamed(AppRoutes.login);
   }
 
   // ─── Gestion des erreurs Auth ─────────────────────────

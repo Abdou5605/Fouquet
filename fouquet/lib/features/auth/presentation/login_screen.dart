@@ -4,11 +4,33 @@ import 'package:get/get.dart';
 import 'package:fouquet/core/navigation/app_routes.dart';
 import 'package:fouquet/core/style/colors.dart';
 
-class LoginScreen extends StatelessWidget {
-  LoginScreen({super.key});
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
 
-  // ✅ Controller initialisé une seule fois ici
-  final LoginController controller = Get.find();
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  late final LoginController _ctrl;
+
+  // ✅ TextEditingControllers dans le State, pas dans le GetxController
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = Get.put(LoginController());
+  }
+
+  @override
+  void dispose() {
+    // ✅ Dispose propre lié au cycle de vie du widget
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +41,7 @@ class LoginScreen extends StatelessWidget {
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
             child: Form(
-              key: controller.formKey,
+              key: _ctrl.formKey,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -28,15 +50,15 @@ class LoginScreen extends StatelessWidget {
                   const SizedBox(height: 40),
                   _buildLabel('Email'),
                   const SizedBox(height: 8),
-                  _buildEmailField(controller),
+                  _buildEmailField(),
                   const SizedBox(height: 20),
                   _buildLabel('Mot de passe'),
                   const SizedBox(height: 8),
-                  _buildPasswordField(controller),
+                  _buildPasswordField(),
                   const SizedBox(height: 14),
-                  _buildRememberRow(controller),
+                  _buildRememberRow(),
                   const SizedBox(height: 36),
-                  _buildLoginBtn(controller),
+                  _buildLoginBtn(),
                   const SizedBox(height: 28),
                   _buildDivider(),
                   const SizedBox(height: 28),
@@ -103,12 +125,12 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildEmailField(LoginController controller) {
+  Widget _buildEmailField() {
     return TextFormField(
-      controller: controller.emailController,
+      controller: _emailController,
       keyboardType: TextInputType.emailAddress,
       style: const TextStyle(fontSize: 14, color: AppColors.textDark),
-      validator: controller.validateEmail,
+      validator: _ctrl.validateEmail,
       decoration: _inputDeco(
         hint: 'exemple@email.com',
         icon: Icons.email_outlined,
@@ -116,20 +138,20 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPasswordField(LoginController controller) {
+  Widget _buildPasswordField() {
     return Obx(
       () => TextFormField(
-        controller: controller.passwordController,
-        obscureText: controller.isPasswordHidden.value,
+        controller: _passwordController,
+        obscureText: _ctrl.isPasswordHidden.value,
         style: const TextStyle(fontSize: 14, color: AppColors.textDark),
-        validator: controller.validatePassword,
+        validator: _ctrl.validatePassword,
         decoration: _inputDeco(
           hint: '••••••••',
           icon: Icons.lock_outline_rounded,
           suffix: GestureDetector(
-            onTap: controller.togglePassword,
+            onTap: _ctrl.togglePassword,
             child: Icon(
-              controller.isPasswordHidden.value
+              _ctrl.isPasswordHidden.value
                   ? Icons.visibility_off_outlined
                   : Icons.visibility_outlined,
               color: AppColors.textGray,
@@ -141,13 +163,13 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRememberRow(LoginController controller) {
+  Widget _buildRememberRow() {
     return Obx(
       () => Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           GestureDetector(
-            onTap: controller.toggleRememberMe,
+            onTap: _ctrl.toggleRememberMe,
             child: Row(
               children: [
                 AnimatedContainer(
@@ -155,18 +177,18 @@ class LoginScreen extends StatelessWidget {
                   width: 20,
                   height: 20,
                   decoration: BoxDecoration(
-                    color: controller.rememberMe.value
+                    color: _ctrl.rememberMe.value
                         ? AppColors.primary
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(
-                      color: controller.rememberMe.value
+                      color: _ctrl.rememberMe.value
                           ? AppColors.primary
                           : AppColors.divider,
                       width: 1.5,
                     ),
                   ),
-                  child: controller.rememberMe.value
+                  child: _ctrl.rememberMe.value
                       ? const Icon(Icons.check, color: Colors.white, size: 13)
                       : null,
                 ),
@@ -178,9 +200,8 @@ class LoginScreen extends StatelessWidget {
               ],
             ),
           ),
-          // ✅ Navigue vers forgotPassword
           GestureDetector(
-            onTap: controller.goToForgotPassword,
+            onTap: _ctrl.goToForgotPassword,
             child: Text(
               'Mot de passe oublié ?',
               style: TextStyle(
@@ -195,21 +216,25 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  // ✅ Bouton connecté à controller.login()
-  Widget _buildLoginBtn(LoginController controller) {
+  Widget _buildLoginBtn() {
     return Obx(
       () => GestureDetector(
-        onTap: controller.isLoading.value ? null : controller.login,
+        onTap: _ctrl.isLoading.value
+            ? null
+            : () => _ctrl.login(
+                email: _emailController.text,
+                password: _passwordController.text,
+              ),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           width: double.infinity,
           height: 56,
           decoration: BoxDecoration(
-            color: controller.isLoading.value
+            color: _ctrl.isLoading.value
                 ? AppColors.primary.withOpacity(0.6)
                 : AppColors.primary,
             borderRadius: BorderRadius.circular(16),
-            boxShadow: controller.isLoading.value
+            boxShadow: _ctrl.isLoading.value
                 ? []
                 : [
                     BoxShadow(
@@ -220,7 +245,7 @@ class LoginScreen extends StatelessWidget {
                   ],
           ),
           child: Center(
-            child: controller.isLoading.value
+            child: _ctrl.isLoading.value
                 ? const SizedBox(
                     width: 22,
                     height: 22,
