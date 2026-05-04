@@ -21,9 +21,6 @@ class HttpClient {
         receiveTimeout: const Duration(seconds: 30),
         sendTimeout: const Duration(seconds: 30),
         headers: {'Accept': 'application/json'},
-        // ✅ CORRECTION PRINCIPALE :
-        // On laisse Dio lancer une DioException pour tout code >= 400
-        // Chaque service gère ses propres erreurs 4xx avec des messages précis
         validateStatus: (status) => status != null && status < 400,
       ),
     );
@@ -65,7 +62,15 @@ class HttpClient {
         options.headers['Authorization'] = 'Bearer $token';
         talker.info("✅ Token ajouté aux headers");
       } else {
-        talker.warning("⚠️ Aucun token disponible");
+        talker.warning("⚠️ Aucun token — requête bloquée silencieusement");
+        return handler.reject(
+          DioException(
+            requestOptions: options,
+            type: DioExceptionType.cancel,
+            error: 'no_token',
+          ),
+          true,
+        );
       }
     }
 
@@ -83,13 +88,16 @@ class HttpClient {
     return handler.next(response);
   }
 
-  /// Intercepteur d'erreurs — gère UNIQUEMENT les cas transversaux (401, 5xx, réseau)
-  /// Les erreurs 422, 403, 404 sont gérées par chaque service individuellement
-  /// pour afficher des messages précis et contextuels.
   Future<void> _onError(
     DioException error,
     ErrorInterceptorHandler handler,
   ) async {
+    // ── Requête bloquée faute de token — silence total ──
+    if (error.type == DioExceptionType.cancel && error.error == 'no_token') {
+      talker.info("ℹ️ Requête ignorée : pas de token (premier lancement)");
+      return handler.next(error);
+    }
+
     final statusCode = error.response?.statusCode;
     final skipGlobal401 = error.requestOptions.extra["skipGlobal401"] == true;
 
@@ -103,7 +111,7 @@ class HttpClient {
       return;
     }
 
-    // 5xx — Erreurs serveur (toujours affichées globalement)
+    // 5xx — Erreurs serveur
     if (statusCode != null && statusCode >= 500) {
       showErrorToast(
         "Serveur indisponible",
@@ -119,8 +127,7 @@ class HttpClient {
       return handler.next(error);
     }
 
-    // Pour tout le reste (422, 403, 404…) : laisser remonter l'exception
-    // vers le service concerné qui affichera un message précis et traduit.
+    // Pour tout le reste (422, 403, 404…)
     return handler.next(error);
   }
 
@@ -188,7 +195,7 @@ class HttpClient {
   }
 
   // ============================================================================
-  // GESTION ERREURS RÉSEAU (sans réponse serveur)
+  // GESTION ERREURS RÉSEAU
   // ============================================================================
 
   void _handleNetworkErrors(DioException error) {

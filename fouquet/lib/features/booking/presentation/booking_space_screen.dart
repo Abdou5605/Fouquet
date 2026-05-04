@@ -432,69 +432,74 @@ class BookSpaceScreen extends StatelessWidget {
 
   // ── Barre fixe en bas ─────────────────────────────────
   Widget _buildBottomBar() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
-      decoration: BoxDecoration(
-        color: AppColors.bgLight,
-        border: Border(top: BorderSide(color: AppColors.divider)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // ── Appeler ────────────────────────────────
-          Row(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => _callRestaurant(_phoneDialable1),
-                  child: _actionBtn(
-                    icon: CupertinoIcons.phone_fill,
-                    label: 'Appeler N°1',
-                    color: AppColors.primary,
+    return SafeArea(
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(
+          16,
+          12,
+          16,
+          16,
+        ), // ← réduis le bottom à 16
+        decoration: BoxDecoration(
+          color: AppColors.bgLight,
+          border: Border(top: BorderSide(color: AppColors.divider)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => _callRestaurant(_phoneDialable1),
+                    child: _actionBtn(
+                      icon: CupertinoIcons.phone_fill,
+                      label: 'Appeler N°1',
+                      color: AppColors.primary,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => _callRestaurant(_phoneDialable2),
-                  child: _actionBtn(
-                    icon: CupertinoIcons.phone_fill,
-                    label: 'Appeler N°2',
-                    color: AppColors.primary,
+                const SizedBox(width: 10),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => _callRestaurant(_phoneDialable2),
+                    child: _actionBtn(
+                      icon: CupertinoIcons.phone_fill,
+                      label: 'Appeler N°2',
+                      color: AppColors.primary,
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          // ── WhatsApp ───────────────────────────────
-          Row(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => _whatsapp(_phoneDialable1),
-                  child: _actionBtn(
-                    icon: CupertinoIcons.chat_bubble_fill,
-                    label: 'WhatsApp N°1',
-                    color: const Color(0xFF25D366),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => _whatsapp(_phoneDialable1),
+                    child: _actionBtn(
+                      icon: CupertinoIcons.chat_bubble_fill,
+                      label: 'WhatsApp N°1',
+                      color: const Color(0xFF25D366),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => _whatsapp(_phoneDialable2),
-                  child: _actionBtn(
-                    icon: CupertinoIcons.chat_bubble_fill,
-                    label: 'WhatsApp N°2',
-                    color: const Color(0xFF25D366),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => _whatsapp(_phoneDialable2),
+                    child: _actionBtn(
+                      icon: CupertinoIcons.chat_bubble_fill,
+                      label: 'WhatsApp N°2',
+                      color: const Color(0xFF25D366),
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
