@@ -1,7 +1,13 @@
+import 'dart:io';
+
 import 'package:fouquet/features/cart/controller/cart_controller.dart';
 import 'package:fouquet/features/home/controllers/home_controller.dart';
 import 'package:fouquet/features/home/service/menu_service.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProductDetailController extends GetxController {
   final _service = MenuService();
@@ -87,5 +93,74 @@ class ProductDetailController extends GetxController {
   void increment() => quantity.value++;
   void decrement() {
     if (quantity.value > 1) quantity.value--;
+  }
+
+  Future<void> shareProduct({String? target}) async {
+    final d = dish.value;
+    if (d == null) return;
+
+    final name = d['name'] as String? ?? '';
+    final description = d['description'] as String? ?? '';
+    final imageUrl = d['image'] as String?;
+    final shareText =
+        '🍽️ $name\n$description\n\nDécouvrez ce plat sur Fouquet !';
+    final encodedText = Uri.encodeComponent(shareText);
+
+    // Télécharge l'image une fois
+    XFile? xfile;
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      final response = await http.get(Uri.parse(imageUrl));
+      final tempDir = await getTemporaryDirectory();
+      final file = File('${tempDir.path}/fouquet_dish.jpg');
+      await file.writeAsBytes(response.bodyBytes);
+      xfile = XFile(file.path);
+    }
+
+    try {
+      switch (target) {
+        case 'whatsapp':
+          // WhatsApp supporte image via Share natif en ciblant le package
+          await Share.shareXFiles(
+            xfile != null ? [xfile] : [],
+            text: shareText,
+          );
+          break;
+
+        case 'facebook':
+          final uri = Uri.parse(
+            'https://www.facebook.com/sharer/sharer.php?u=$encodedText',
+          );
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+          }
+          break;
+
+        case 'x':
+          final uri = Uri.parse(
+            'https://twitter.com/intent/tweet?text=$encodedText',
+          );
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+          }
+          break;
+
+        case 'instagram':
+          // Instagram ne supporte pas le texte, image seulement
+          if (xfile != null) {
+            await Share.shareXFiles([xfile], text: shareText);
+          }
+          break;
+
+        default:
+          // Sélecteur natif
+          if (xfile != null) {
+            await Share.shareXFiles([xfile], text: shareText);
+          } else {
+            await Share.share(shareText);
+          }
+      }
+    } catch (e) {
+      await Share.share(shareText);
+    }
   }
 }

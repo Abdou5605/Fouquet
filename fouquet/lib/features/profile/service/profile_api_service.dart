@@ -20,7 +20,7 @@ class ProfileApiService {
       return null;
     } on DioException catch (e) {
       _handleError(e);
-      return null;
+      return null; // ← retourne null sans throw, le fetchProfile peut continuer
     }
   }
 

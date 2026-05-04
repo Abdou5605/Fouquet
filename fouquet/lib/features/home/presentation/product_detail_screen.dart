@@ -1,10 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:fouquet/features/home/controllers/products_detail_controller.dart';
 import 'package:get/get.dart';
 import 'package:fouquet/core/style/colors.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   const ProductDetailScreen({super.key});
@@ -24,6 +27,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   void _showShareSheet() {
+    final dish = ctrl.dish.value;
+    final name = dish?['name'] ?? '';
+    final description = dish?['description'] ?? '';
+    final shareText =
+        '🍽️ $name\n$description\n\nDécouvrez ce plat sur Fouquet !';
+    final encodedText = Uri.encodeComponent(shareText);
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -64,23 +74,32 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   FontAwesomeIcons.whatsapp,
                   'WhatsApp',
                   const Color(0xFF25D366),
+                  () => ctrl.shareProduct(),
                 ),
                 _shareItemFa(
                   FontAwesomeIcons.facebook,
                   'Facebook',
                   const Color(0xFF1877F2),
+                  () => ctrl.shareProduct(),
                 ),
                 _shareItemFa(
                   FontAwesomeIcons.instagram,
                   'Instagram',
                   const Color(0xFFE1306C),
+                  () => ctrl.shareProduct(),
                 ),
-                _shareItemFa(FontAwesomeIcons.xTwitter, 'X', Colors.black),
+                _shareItemFa(
+                  FontAwesomeIcons.xTwitter,
+                  'X',
+                  Colors.black,
+                  () => ctrl.shareProduct(),
+                ),
                 _shareItemCupertino(
                   CupertinoIcons.link,
                   'Copier',
                   AppColors.primary,
                   () {
+                    Clipboard.setData(ClipboardData(text: shareText));
                     Get.back();
                     Get.snackbar(
                       'Lien copié',
@@ -101,33 +120,39 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  Widget _shareItemFa(FaIconData icon, String label, Color color) =>
-      GestureDetector(
-        onTap: () => Get.back(),
-        child: Column(
-          children: [
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Center(child: FaIcon(icon, color: color, size: 26)),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 11,
-                color: AppColors.textGray,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
+  Widget _shareItemFa(
+    FaIconData icon,
+    String label,
+    Color color,
+    VoidCallback onTap,
+  ) => GestureDetector(
+    onTap: () {
+      Get.back();
+      onTap();
+    },
+    child: Column(
+      children: [
+        Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.12),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Center(child: FaIcon(icon, color: color, size: 26)),
         ),
-      );
-
+        const SizedBox(height: 6),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 11,
+            color: AppColors.textGray,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    ),
+  );
   Widget _shareItemCupertino(
     IconData icon,
     String label,
@@ -206,29 +231,32 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               slivers: [
                 _buildSliverAppBar(image),
                 SliverToBoxAdapter(
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.vertical(
-                        top: Radius.circular(30),
+                  child: Transform.translate(
+                    offset: const Offset(0, -20),
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(30),
+                        ),
                       ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildNameRow(name, isAvailable),
-                        const SizedBox(height: 8),
-                        if (catName != null) _buildCategoryChip(catName),
-                        const SizedBox(height: 12),
-                        _buildMetaRow(avisCount, cookingTime, kcal),
-                        const SizedBox(height: 20),
-                        _buildDescription(description),
-                        const SizedBox(height: 24),
-                        _buildPriceRow(),
-                        const SizedBox(height: 24),
-                        _buildQtyRow(),
-                        const SizedBox(height: 120),
-                      ],
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildNameRow(name, isAvailable),
+                          const SizedBox(height: 8),
+                          if (catName != null) _buildCategoryChip(catName),
+                          const SizedBox(height: 12),
+                          _buildMetaRow(avisCount, cookingTime, kcal),
+                          const SizedBox(height: 20),
+                          _buildDescription(description),
+                          const SizedBox(height: 24),
+                          _buildPriceRow(),
+                          const SizedBox(height: 24),
+                          _buildQtyRow(),
+                          const SizedBox(height: 120),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -323,7 +351,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         background: image != null
             ? Image.network(
                 image,
-                fit: BoxFit.contain,
+                fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => _imgPlaceholder(),
               )
             : _imgPlaceholder(),
@@ -333,7 +361,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   Widget _buildNameRow(String name, bool isAvailable) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+      padding: const EdgeInsets.fromLTRB(12, 20, 12, 0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -370,7 +398,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   Widget _buildCategoryChip(String catName) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         decoration: BoxDecoration(
@@ -391,7 +419,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   Widget _buildMetaRow(int avisCount, int? cookingTime, int? kcal) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Wrap(
         spacing: 16,
         runSpacing: 6,
@@ -438,7 +466,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   Widget _buildDescription(String description) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -466,7 +494,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   Widget _buildPriceRow() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Obx(
         () => Text(
           ctrl.formattedTotal,
@@ -482,7 +510,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   Widget _buildQtyRow() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(
         children: [
           const Text(

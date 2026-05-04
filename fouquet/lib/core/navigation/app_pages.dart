@@ -16,9 +16,11 @@ import 'package:fouquet/features/cart/presentation/checkout_screen.dart';
 import 'package:fouquet/features/cart/presentation/payment_screen.dart';
 import 'package:fouquet/features/favorite/controller/favorite_controller.dart';
 import 'package:fouquet/features/favorite/presentation/favorites_screen.dart';
+import 'package:fouquet/features/notifications/controller/notifications_controller.dart';
 import 'package:fouquet/features/home/presentation/all_products_screen.dart';
 import 'package:fouquet/features/home/presentation/home_screen.dart';
 import 'package:fouquet/features/home/presentation/product_detail_screen.dart';
+import 'package:fouquet/features/notifications/presentation/notification_screen.dart';
 import 'package:fouquet/features/profile/controller/change_password_controller.dart';
 import 'package:fouquet/features/profile/controller/order_history_controller.dart';
 import 'package:fouquet/features/profile/controller/profile_controller.dart';
@@ -128,6 +130,11 @@ class AppPages {
       name: AppRoutes.referral,
       page: () => const ReferralScreen(),
       binding: BindingsBuilder(() => Get.put(PromoCodeController())),
+    ),
+    GetPage(
+      name: AppRoutes.notifications,
+      page: () => const NotificationScreen(),
+      binding: BindingsBuilder(() => Get.put(NotificationController())),
     ),
     GetPage(name: AppRoutes.helpCenter, page: () => const HelpCenterScreen()),
     GetPage(name: AppRoutes.contact, page: () => const ContactScreen()),

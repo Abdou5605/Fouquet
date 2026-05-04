@@ -19,6 +19,9 @@ class ProfileController extends GetxController {
   final email = ''.obs;
   final phone = ''.obs;
   final address = ''.obs;
+  final ordersCount = 0.obs;
+  final favoritesCount = 0.obs;
+  final rating = '0.0'.obs;
   final avatarUrl = RxnString(); // null si pas d'avatar
 
   // ─── Image locale sélectionnée ────────────────────────
@@ -38,19 +41,26 @@ class ProfileController extends GetxController {
 
   // ─── Charger le profil ────────────────────────────────
   Future<void> fetchProfile() async {
-    final user = await ProfileApiService.getProfile();
-    if (user != null) {
-      // ✅ L'API retourne first_name / last_name
-      firstname.value = user['first_name'] ?? '';
-      lastname.value = user['last_name'] ?? '';
-      fullName.value =
-          user['full_name'] ?? '${firstname.value} ${lastname.value}'.trim();
-      email.value = user['email'] ?? '';
-      phone.value = user['phone'] ?? '';
-      address.value = user['address'] ?? '';
-      avatarUrl.value = user['avatar'];
+    try {
+      final user = await ProfileApiService.getProfile();
+      if (user != null) {
+        firstname.value = user['first_name'] ?? '';
+        lastname.value = user['last_name'] ?? '';
+        fullName.value =
+            user['full_name'] ?? '${firstname.value} ${lastname.value}'.trim();
+        email.value = user['email'] ?? '';
+        phone.value = user['phone'] ?? '';
+        address.value = user['address'] ?? '';
+        avatarUrl.value = user['avatar'];
+        ordersCount.value = user['orders_count'] ?? 0;
+        favoritesCount.value = user['favorites_count'] ?? 0;
+        rating.value = (user['rating'] as num?)?.toStringAsFixed(1) ?? '0.0';
+      }
+    } catch (e) {
+      print('fetchProfile error: $e');
+    } finally {
+      isLoading.value = false; // ← toujours exécuté
     }
-    isLoading.value = false;
   }
 
   // ─── Choisir une image ────────────────────────────────

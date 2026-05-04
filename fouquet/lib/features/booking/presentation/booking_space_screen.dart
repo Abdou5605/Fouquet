@@ -23,13 +23,17 @@ class BookSpaceScreen extends StatelessWidget {
     letterSpacing: letterSpacing,
   );
 
-  // ── Numéro du restaurant ── À MODIFIER ────────────────
-  static const String _phone = '+229 XX XX XX XX';
-  static const String _phoneDialable = '+229XXXXXXXX';
+  // ── Numéros du restaurant ─────────────────────────────
+  static const String _phone1 = '+229 01 94 94 21 70';
+  static const String _phone2 = '+229 01 91 39 14 14'; // ← 2ème numéro
+
+  static const String _phoneDialable1 = '+2290194942170';
+  static const String _phoneDialable2 =
+      '+2290191391414'; // ← 2ème numéro // Sans espaces ni caractères spéciaux pour les liens téléphoniques et WhatsApp
 
   // ── Appel téléphonique ────────────────────────────────
-  Future<void> _callRestaurant() async {
-    final uri = Uri.parse('tel:$_phoneDialable');
+  Future<void> _callRestaurant(String number) async {
+    final uri = Uri.parse('tel:$number');
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else {
@@ -46,9 +50,9 @@ class BookSpaceScreen extends StatelessWidget {
   }
 
   // ── WhatsApp ──────────────────────────────────────────
-  Future<void> _whatsapp() async {
-    final number = _phoneDialable.replaceAll('+', '');
-    final uri = Uri.parse('https://wa.me/$number');
+  Future<void> _whatsapp(String number) async {
+    final clean = number.replaceAll('+', '');
+    final uri = Uri.parse('https://wa.me/$clean');
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
@@ -65,8 +69,8 @@ class BookSpaceScreen extends StatelessWidget {
   }
 
   // ── Copier le numéro ──────────────────────────────────
-  void _copyNumber() {
-    Clipboard.setData(ClipboardData(text: _phone));
+  void _copyNumber(String number) {
+    Clipboard.setData(ClipboardData(text: number));
     Get.snackbar(
       'Copié !',
       'Le numéro a été copié dans le presse-papiers.',
@@ -332,6 +336,28 @@ class BookSpaceScreen extends StatelessWidget {
 
   // ── Carte numéro avec bouton copier ───────────────────
   Widget _buildPhoneCard() {
+    return Column(
+      children: [
+        _phoneCard(
+          label: 'Numéro 1',
+          phone: _phone1,
+          dialable: _phoneDialable1,
+        ),
+        const SizedBox(height: 12),
+        _phoneCard(
+          label: 'Numéro 2',
+          phone: _phone2,
+          dialable: _phoneDialable2,
+        ),
+      ],
+    );
+  }
+
+  Widget _phoneCard({
+    required String label,
+    required String phone,
+    required String dialable,
+  }) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -363,7 +389,7 @@ class BookSpaceScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Appelez-nous',
+                  label,
                   style: _nunito(
                     size: 12,
                     color: AppColors.textGray,
@@ -372,7 +398,7 @@ class BookSpaceScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  _phone,
+                  phone,
                   style: _nunito(
                     size: 16,
                     weight: FontWeight.w800,
@@ -383,9 +409,8 @@ class BookSpaceScreen extends StatelessWidget {
               ],
             ),
           ),
-          // ✅ Bouton copier
           GestureDetector(
-            onTap: _copyNumber,
+            onTap: () => _copyNumber(phone),
             child: Container(
               width: 38,
               height: 38,
@@ -416,81 +441,93 @@ class BookSpaceScreen extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // ── Bouton Appeler (en haut) ────────────────
-          GestureDetector(
-            onTap: _callRestaurant,
-            child: Container(
-              width: double.infinity,
-              height: 54,
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withOpacity(0.30),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
+          // ── Appeler ────────────────────────────────
+          Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => _callRestaurant(_phoneDialable1),
+                  child: _actionBtn(
+                    icon: CupertinoIcons.phone_fill,
+                    label: 'Appeler N°1',
+                    color: AppColors.primary,
                   ),
-                ],
+                ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    CupertinoIcons.phone_fill,
-                    color: Colors.white,
-                    size: 18,
+              const SizedBox(width: 10),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => _callRestaurant(_phoneDialable2),
+                  child: _actionBtn(
+                    icon: CupertinoIcons.phone_fill,
+                    label: 'Appeler N°2',
+                    color: AppColors.primary,
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Appeler',
-                    style: _nunito(
-                      size: 14,
-                      weight: FontWeight.w800,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
           const SizedBox(height: 10),
-          // ── Bouton WhatsApp (en bas) ────────────────
-          GestureDetector(
-            onTap: _whatsapp,
-            child: Container(
-              width: double.infinity,
-              height: 54,
-              decoration: BoxDecoration(
-                color: const Color(0xFF25D366),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF25D366).withOpacity(0.30),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
+          // ── WhatsApp ───────────────────────────────
+          Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => _whatsapp(_phoneDialable1),
+                  child: _actionBtn(
+                    icon: CupertinoIcons.chat_bubble_fill,
+                    label: 'WhatsApp N°1',
+                    color: const Color(0xFF25D366),
                   ),
-                ],
+                ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    CupertinoIcons.chat_bubble_fill,
-                    color: Colors.white,
-                    size: 18,
+              const SizedBox(width: 10),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => _whatsapp(_phoneDialable2),
+                  child: _actionBtn(
+                    icon: CupertinoIcons.chat_bubble_fill,
+                    label: 'WhatsApp N°2',
+                    color: const Color(0xFF25D366),
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'WhatsApp',
-                    style: _nunito(
-                      size: 14,
-                      weight: FontWeight.w800,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
+                ),
               ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _actionBtn({
+    required IconData icon,
+    required String label,
+    required Color color,
+  }) {
+    return Container(
+      height: 54,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.30),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: Colors.white, size: 16),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: _nunito(
+              size: 12,
+              weight: FontWeight.w800,
+              color: Colors.white,
             ),
           ),
         ],

@@ -7,6 +7,7 @@ import 'package:fouquet/features/cart/presentation/cart_screen.dart';
 import 'package:fouquet/features/favorite/controller/favorite_controller.dart';
 import 'package:fouquet/features/favorite/presentation/favorites_screen.dart';
 import 'package:fouquet/features/home/controllers/home_controller.dart';
+import 'package:fouquet/features/notifications/controller/notifications_controller.dart';
 import 'package:fouquet/features/profile/presentation/profile_screen.dart';
 import 'package:get/get.dart';
 import 'package:fouquet/core/resources/app_images.dart';
@@ -38,6 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Get.put(ProfileController());
     _menu = Get.put(HomeController());
     Get.put(FavoriteController());
+    Get.put(NotificationController());
 
     // ✅ Pagination : charge plus quand on approche la fin
     _scrollCtrl.addListener(() {
@@ -159,7 +161,7 @@ class _HomeScreenState extends State<HomeScreen> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [AppColors.primary, AppColors.secondary],
+          colors: [AppColors.primary, AppColors.primary.withOpacity(0.75)],
         ),
         borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
       ),
@@ -210,36 +212,45 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-          Stack(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  CupertinoIcons.bell,
-                  color: Colors.white,
-                  size: 22,
-                ),
-              ),
-              Positioned(
-                top: 6,
-                right: 6,
-                child: Container(
-                  width: 10,
-                  height: 10,
-                  decoration: BoxDecoration(
-                    color: AppColors.secondary,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 1.5),
+          // Remplace le Stack statique par :
+          Obx(() {
+            final notifCtrl = Get.find<NotificationController>();
+            final unread = notifCtrl.unreadCount;
+            return GestureDetector(
+              onTap: () => Get.toNamed(AppRoutes.notifications),
+              child: Stack(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      CupertinoIcons.bell,
+                      color: Colors.white,
+                      size: 22,
+                    ),
                   ),
-                ),
+                  if (unread > 0)
+                    Positioned(
+                      top: 6,
+                      right: 6,
+                      child: Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: AppColors.secondary,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 1.5),
+                        ),
+                      ),
+                    ),
+                ],
               ),
-            ],
-          ),
+            );
+          }),
         ],
       ),
     );

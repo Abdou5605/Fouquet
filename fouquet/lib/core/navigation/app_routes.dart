@@ -24,4 +24,5 @@ abstract class AppRoutes {
   static const helpCenter = '/help-center';
   static const contact = '/contact';
   static const String allProducts = '/all-products';
+  static const String notifications = '/notifications';
 }

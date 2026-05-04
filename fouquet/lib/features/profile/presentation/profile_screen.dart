@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fouquet/features/notifications/controller/notifications_controller.dart';
 import 'package:fouquet/features/profile/service/profile_api_service.dart';
 import 'package:get/get.dart';
 import 'package:fouquet/core/navigation/app_routes.dart';
@@ -156,7 +157,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [AppColors.primary, AppColors.primary.withOpacity(0.7)],
+          colors: [AppColors.primary, AppColors.primary.withOpacity(0.75)],
         ),
         borderRadius: const BorderRadius.vertical(bottom: Radius.circular(30)),
       ),
@@ -298,14 +299,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
             BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 10),
           ],
         ),
-        child: Row(
-          children: [
-            _statItem('12', 'Commandes'),
-            _divider(),
-            _statItem('5', 'Favoris'),
-            _divider(),
-            _statItem('4.8', 'Note'),
-          ],
+        child: Obx(
+          () => Row(
+            children: [
+              _statItem('${_controller.ordersCount.value}', 'Commandes'),
+              _divider(),
+              _statItem('${_controller.favoritesCount.value}', 'Favoris'),
+              _divider(),
+              _statItem(_controller.rating.value, 'Note'),
+            ],
+          ),
         ),
       ),
     );
@@ -701,7 +704,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildSwitch() => _SwitchWidget();
+  Widget _buildSwitch() {
+    final notifCtrl = Get.find<NotificationController>();
+    return Obx(
+      () => Switch(
+        value: notifCtrl.notificationsEnabled.value,
+        onChanged: (_) => notifCtrl.toggleNotifications(),
+        activeColor: AppColors.badgeOff,
+      ),
+    );
+  }
 
   // ─── Bouton déconnexion ───────────────────────────────
   Widget _buildLogoutBtn() {
